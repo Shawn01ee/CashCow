@@ -36,6 +36,10 @@ export default function App() {
   // Which screen are we on? Simple string-based "router" — no library needed.
   const [page, setPage] = useState("home");
 
+  // When the user taps "Edit" on a transaction, we store it here and reuse
+  // the Add screen as an edit form. null = we're adding a brand-new one.
+  const [editingTx, setEditingTx] = useState(null);
+
   // All app data lives here in React state, seeded from localStorage.
   const [accounts, setAccounts] = useState(() =>
     loadOrSeed(STORAGE_KEYS.accounts, sampleAccounts)
@@ -67,17 +71,59 @@ export default function App() {
 
   // ---- Actions that screens call to change data ----
 
+  // How a transaction changes an account: income adds, expense subtracts.
+  function txEffect(tx) {
+    return tx.type === "income" ? tx.amount : -tx.amount;
+  }
+
+  // Return a new accounts array with `delta` applied to one account's balance.
+  function applyToBalance(accountsList, accountId, delta) {
+    return accountsList.map((acc) =>
+      acc.id === accountId ? { ...acc, balance: acc.balance + delta } : acc
+    );
+  }
+
   // Add a new transaction AND adjust the matching account's balance.
   function addTransaction(tx) {
     setTransactions((prev) => [tx, ...prev]);
-    setAccounts((prev) =>
-      prev.map((acc) => {
-        if (acc.id !== tx.accountId) return acc;
-        const delta = tx.type === "income" ? tx.amount : -tx.amount;
-        return { ...acc, balance: acc.balance + delta };
-      })
-    );
+    setAccounts((prev) => applyToBalance(prev, tx.accountId, txEffect(tx)));
     setPage("transactions"); // jump to the list so the user sees it landed
+  }
+
+  // Edit an existing transaction. We first "undo" the old transaction's effect
+  // on balances, then apply the new one (the account may even have changed).
+  function updateTransaction(updated) {
+    const old = transactions.find((t) => t.id === updated.id);
+    setTransactions((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+    setAccounts((prev) => {
+      let next = prev;
+      if (old) next = applyToBalance(next, old.accountId, -txEffect(old)); // undo old
+      next = applyToBalance(next, updated.accountId, txEffect(updated)); // apply new
+      return next;
+    });
+    setEditingTx(null);
+    setPage("transactions");
+  }
+
+  // Delete a transaction and give its money back to / take it from the account.
+  function deleteTransaction(id) {
+    const tx = transactions.find((t) => t.id === id);
+    if (!tx) return;
+    setTransactions((prev) => prev.filter((t) => t.id !== id));
+    setAccounts((prev) => applyToBalance(prev, tx.accountId, -txEffect(tx)));
+  }
+
+  // Open the Add screen in "edit mode" for a specific transaction.
+  function startEdit(tx) {
+    setEditingTx(tx);
+    setPage("add");
+  }
+
+  // Navigation wrapper: tapping "Add" in the menu always means a NEW
+  // transaction, so we clear any leftover edit target first.
+  function navigate(targetPage) {
+    if (targetPage === "add") setEditingTx(null);
+    setPage(targetPage);
   }
 
   function addAccount(account) {
@@ -97,9 +143,17 @@ export default function App() {
       case "add":
         return (
           <AddTransaction
+            // key forces a fresh form when switching between add/edit targets
+            key={editingTx ? editingTx.id : "new"}
             categories={categories}
             accounts={accounts}
+            editingTx={editingTx}
             onAdd={addTransaction}
+            onUpdate={updateTransaction}
+            onCancel={() => {
+              setEditingTx(null);
+              setPage("transactions");
+            }}
           />
         );
       case "transactions":
@@ -108,6 +162,8 @@ export default function App() {
             transactions={transactions}
             accounts={accounts}
             categories={categories}
+            onEdit={startEdit}
+            onDelete={deleteTransaction}
           />
         );
       case "insights":
@@ -128,14 +184,14 @@ export default function App() {
             transactions={transactions}
             fixedPayments={fixedPayments}
             categories={categories}
-            onNavigate={setPage}
+            onNavigate={navigate}
           />
         );
     }
   }
 
   return (
-    <Layout page={page} onNavigate={setPage}>
+    <Layout page={page} onNavigate={navigate}>
       {renderPage()}
     </Layout>
   );

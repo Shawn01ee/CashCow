@@ -10,16 +10,29 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export default function AddTransaction({ categories, accounts, onAdd }) {
-  // Each field is a piece of state.
-  const [type, setType] = useState("expense");
-  const [amount, setAmount] = useState("");
-  const [currency, setCurrency] = useState("AUD");
-  const [category, setCategory] = useState("");
-  const [accountId, setAccountId] = useState(accounts[0]?.id || "");
-  const [memo, setMemo] = useState("");
-  const [date, setDate] = useState(today());
-  const [isFixed, setIsFixed] = useState(false);
+export default function AddTransaction({
+  categories,
+  accounts,
+  editingTx, // a transaction object when editing, otherwise null/undefined
+  onAdd,
+  onUpdate,
+  onCancel,
+}) {
+  const isEditing = Boolean(editingTx);
+
+  // Each field is a piece of state. When editing, we seed it from editingTx.
+  // (App passes a unique `key`, so this component remounts and re-seeds
+  //  whenever the edit target changes.)
+  const [type, setType] = useState(editingTx?.type || "expense");
+  const [amount, setAmount] = useState(editingTx ? String(editingTx.amount) : "");
+  const [currency, setCurrency] = useState(editingTx?.currency || "AUD");
+  const [category, setCategory] = useState(editingTx?.category || "");
+  const [accountId, setAccountId] = useState(
+    editingTx?.accountId || accounts[0]?.id || ""
+  );
+  const [memo, setMemo] = useState(editingTx?.memo || "");
+  const [date, setDate] = useState(editingTx?.date || today());
+  const [isFixed, setIsFixed] = useState(editingTx?.isFixed || false);
 
   // Only show categories that match the selected type (income vs expense).
   const visibleCategories = categories.filter((c) => c.type === type);
@@ -46,7 +59,8 @@ export default function AddTransaction({ categories, accounts, onAdd }) {
 
     // Build the transaction object that matches our data model.
     const tx = {
-      id: `tx-${Date.now()}`, // simple unique id based on the timestamp
+      // Keep the same id when editing; create a new one when adding.
+      id: isEditing ? editingTx.id : `tx-${Date.now()}`,
       type,
       amount: numericAmount,
       currency,
@@ -57,7 +71,9 @@ export default function AddTransaction({ categories, accounts, onAdd }) {
       isFixed,
     };
 
-    onAdd(tx); // App handles saving + balance update + navigation
+    // App handles saving + balance update + navigation for both cases.
+    if (isEditing) onUpdate(tx);
+    else onAdd(tx);
   }
 
   // Shared styling for inputs so the form stays consistent.
@@ -67,10 +83,12 @@ export default function AddTransaction({ categories, accounts, onAdd }) {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold text-white">Add transaction</h1>
+      <h1 className="text-2xl font-bold text-white">
+        {isEditing ? "Edit transaction" : "Add transaction"}
+      </h1>
 
-      {/* Quick adds */}
-      <div>
+      {/* Quick adds (hidden while editing — they're for fast new entries) */}
+      <div className={isEditing ? "hidden" : ""}>
         <p className={labelCls}>Quick add</p>
         <div className="flex flex-wrap gap-2">
           {quickAdds.map((q) => (
@@ -214,12 +232,23 @@ export default function AddTransaction({ categories, accounts, onAdd }) {
           </button>
         </div>
 
-        <button
-          type="submit"
-          className="w-full rounded-xl bg-emerald-500 py-3 text-sm font-semibold text-neutral-950 hover:bg-emerald-400"
-        >
-          Save transaction
-        </button>
+        <div className="flex gap-2">
+          {isEditing && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="flex-1 rounded-xl bg-neutral-800 py-3 text-sm font-semibold text-neutral-300 ring-1 ring-neutral-700 hover:text-white"
+            >
+              Cancel
+            </button>
+          )}
+          <button
+            type="submit"
+            className="flex-1 rounded-xl bg-emerald-500 py-3 text-sm font-semibold text-neutral-950 hover:bg-emerald-400"
+          >
+            {isEditing ? "Save changes" : "Save transaction"}
+          </button>
+        </div>
       </form>
     </div>
   );

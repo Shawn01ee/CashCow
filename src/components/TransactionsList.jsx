@@ -5,8 +5,24 @@ import { formatMoney } from "../utils/calculations";
 
 const FILTERS = ["All", "Income", "Expense", "Fixed", "Variable"];
 
-export default function TransactionsList({ transactions, accounts, categories }) {
+export default function TransactionsList({
+  transactions,
+  accounts,
+  categories,
+  onEdit,
+  onDelete,
+}) {
   const [filter, setFilter] = useState("All");
+
+  // Ask before permanently removing a transaction.
+  function handleDelete(tx) {
+    const ok = window.confirm(
+      `Delete "${tx.memo || tx.category}" (${tx.type === "income" ? "+" : "-"}${
+        tx.amount
+      })? This also adjusts the account balance back.`
+    );
+    if (ok) onDelete(tx.id);
+  }
 
   // Helper lookups so each row can show icon + account name.
   const iconFor = (name) => categories.find((c) => c.name === name)?.icon || "💵";
@@ -82,6 +98,24 @@ export default function TransactionsList({ transactions, accounts, categories })
                     {tx.type === "income" ? "+" : "-"}
                     {formatMoney(tx.amount, tx.currency)}
                   </span>
+
+                  {/* Edit + delete actions */}
+                  <div className="flex shrink-0 gap-1">
+                    <button
+                      onClick={() => onEdit(tx)}
+                      aria-label="Edit"
+                      className="rounded-lg px-2 py-1 text-sm text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => handleDelete(tx)}
+                      aria-label="Delete"
+                      className="rounded-lg px-2 py-1 text-sm text-neutral-400 hover:bg-neutral-800 hover:text-red-400"
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
