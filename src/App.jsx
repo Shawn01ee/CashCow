@@ -5,145 +5,159 @@ import AddTransaction from "./components/AddTransaction";
 import TransactionsList from "./components/TransactionsList";
 import Insights from "./components/Insights";
 import Accounts from "./components/Accounts";
-import {
-  sampleAccounts,
-  sampleCategories,
-  sampleTransactions,
-  sampleFixedPayments,
-} from "./data/sampleData";
+import AuthScreen from "./auth/AuthScreen";
+import SetupNeeded from "./auth/SetupNeeded";
+import { useAuth } from "./auth/AuthContext";
+import { isSupabaseConfigured } from "./lib/supabase";
+import * as api from "./lib/api";
 
-// One key per data type keeps localStorage tidy and easy to debug.
-const STORAGE_KEYS = {
-  accounts: "cashcow.accounts",
-  categories: "cashcow.categories",
-  transactions: "cashcow.transactions",
-  fixedPayments: "cashcow.fixedPayments",
-};
+// ----------------------------------------------------------------------
+// App = the "gate". It decides what to show based on setup + login state:
+//   - no Supabase keys      -> SetupNeeded screen
+//   - still checking session -> a small loading screen
+//   - not logged in          -> AuthScreen (login / signup)
+//   - logged in              -> the real CashCowApp
+// ----------------------------------------------------------------------
+export default function App() {
+  const { user, loading } = useAuth();
 
-// Small helper: load from localStorage, or fall back to sample data the
-// first time the app ever runs (when nothing is saved yet).
-function loadOrSeed(key, fallback) {
-  try {
-    const saved = localStorage.getItem(key);
-    return saved ? JSON.parse(saved) : fallback;
-  } catch {
-    // If parsing fails for any reason, just use the sample data.
-    return fallback;
-  }
+  if (!isSupabaseConfigured) return <SetupNeeded />;
+  if (loading) return <CenterMessage text="Loading…" />;
+  if (!user) return <AuthScreen />;
+  return <CashCowApp user={user} />;
 }
 
-export default function App() {
-  // Which screen are we on? Simple string-based "router" — no library needed.
-  const [page, setPage] = useState("home");
+function CenterMessage({ text }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-neutral-950 text-neutral-400">
+      {text}
+    </div>
+  );
+}
 
-  // When the user taps "Edit" on a transaction, we store it here and reuse
-  // the Add screen as an edit form. null = we're adding a brand-new one.
+// ----------------------------------------------------------------------
+// CashCowApp = the actual app, shown once a user is logged in.
+// It loads that user's data from Supabase and writes changes back.
+// ----------------------------------------------------------------------
+function CashCowApp({ user }) {
+  const { signOut } = useAuth();
+
+  const [page, setPage] = useState("home");
   const [editingTx, setEditingTx] = useState(null);
 
-  // All app data lives here in React state, seeded from localStorage.
-  const [accounts, setAccounts] = useState(() =>
-    loadOrSeed(STORAGE_KEYS.accounts, sampleAccounts)
-  );
-  const [categories, setCategories] = useState(() =>
-    loadOrSeed(STORAGE_KEYS.categories, sampleCategories)
-  );
-  const [transactions, setTransactions] = useState(() =>
-    loadOrSeed(STORAGE_KEYS.transactions, sampleTransactions)
-  );
-  const [fixedPayments, setFixedPayments] = useState(() =>
-    loadOrSeed(STORAGE_KEYS.fixedPayments, sampleFixedPayments)
-  );
+  // Data for the logged-in user.
+  const [accounts, setAccounts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [fixedPayments, setFixedPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Whenever a piece of data changes, mirror it back into localStorage.
-  // Each useEffect watches one slice of state.
+  // Load everything once, when this user's app mounts.
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.accounts, JSON.stringify(accounts));
-  }, [accounts]);
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.categories, JSON.stringify(categories));
-  }, [categories]);
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.transactions, JSON.stringify(transactions));
-  }, [transactions]);
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.fixedPayments, JSON.stringify(fixedPayments));
-  }, [fixedPayments]);
+    let active = true;
+    api
+      .fetchAll()
+      .then((data) => {
+        if (!active) return;
+        setAccounts(data.accounts);
+        setCategories(data.categories);
+        setTransactions(data.transactions);
+        setFixedPayments(data.fixedPayments);
+      })
+      .catch((err) => alert("Couldn't load your data: " + err.message))
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, [user.id]);
 
-  // ---- Actions that screens call to change data ----
+  // ---- Balance helpers (same logic as before) ----
+  const txEffect = (tx) => (tx.type === "income" ? tx.amount : -tx.amount);
 
-  // How a transaction changes an account: income adds, expense subtracts.
-  function txEffect(tx) {
-    return tx.type === "income" ? tx.amount : -tx.amount;
-  }
-
-  // Return a new accounts array with `delta` applied to one account's balance.
-  function applyToBalance(accountsList, accountId, delta) {
-    return accountsList.map((acc) =>
-      acc.id === accountId ? { ...acc, balance: acc.balance + delta } : acc
+  // Update one account's balance in BOTH local state and the database.
+  async function changeBalance(accountId, delta) {
+    const acc = accounts.find((a) => a.id === accountId);
+    if (!acc) return;
+    const newBalance = acc.balance + delta;
+    setAccounts((prev) =>
+      prev.map((a) => (a.id === accountId ? { ...a, balance: newBalance } : a))
     );
+    await api.setAccountBalance(accountId, newBalance);
   }
 
-  // Add a new transaction AND adjust the matching account's balance.
-  function addTransaction(tx) {
-    setTransactions((prev) => [tx, ...prev]);
-    setAccounts((prev) => applyToBalance(prev, tx.accountId, txEffect(tx)));
-    setPage("transactions"); // jump to the list so the user sees it landed
+  // ---- Actions ----
+  async function addTransaction(tx) {
+    try {
+      const saved = await api.insertTransaction(user.id, tx);
+      setTransactions((prev) => [saved, ...prev]);
+      await changeBalance(saved.accountId, txEffect(saved));
+      setPage("transactions");
+    } catch (err) {
+      alert("Couldn't save: " + err.message);
+    }
   }
 
-  // Edit an existing transaction. We first "undo" the old transaction's effect
-  // on balances, then apply the new one (the account may even have changed).
-  function updateTransaction(updated) {
-    const old = transactions.find((t) => t.id === updated.id);
-    setTransactions((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
-    setAccounts((prev) => {
-      let next = prev;
-      if (old) next = applyToBalance(next, old.accountId, -txEffect(old)); // undo old
-      next = applyToBalance(next, updated.accountId, txEffect(updated)); // apply new
-      return next;
-    });
-    setEditingTx(null);
-    setPage("transactions");
+  async function updateTransaction(updated) {
+    try {
+      const old = transactions.find((t) => t.id === updated.id);
+      const saved = await api.updateTransaction(updated);
+      setTransactions((prev) => prev.map((t) => (t.id === saved.id ? saved : t)));
+      // Reverse the old effect, then apply the new one.
+      if (old) await changeBalance(old.accountId, -txEffect(old));
+      await changeBalance(saved.accountId, txEffect(saved));
+      setEditingTx(null);
+      setPage("transactions");
+    } catch (err) {
+      alert("Couldn't update: " + err.message);
+    }
   }
 
-  // Delete a transaction and give its money back to / take it from the account.
-  function deleteTransaction(id) {
-    const tx = transactions.find((t) => t.id === id);
-    if (!tx) return;
-    setTransactions((prev) => prev.filter((t) => t.id !== id));
-    setAccounts((prev) => applyToBalance(prev, tx.accountId, -txEffect(tx)));
+  async function deleteTransaction(id) {
+    try {
+      const tx = transactions.find((t) => t.id === id);
+      await api.deleteTransaction(id);
+      setTransactions((prev) => prev.filter((t) => t.id !== id));
+      if (tx) await changeBalance(tx.accountId, -txEffect(tx));
+    } catch (err) {
+      alert("Couldn't delete: " + err.message);
+    }
   }
 
-  // Open the Add screen in "edit mode" for a specific transaction.
+  async function addAccount(account) {
+    try {
+      const saved = await api.insertAccount(user.id, account);
+      setAccounts((prev) => [...prev, saved]);
+    } catch (err) {
+      alert("Couldn't add account: " + err.message);
+    }
+  }
+
+  async function setMainAccount(accountId) {
+    try {
+      await api.setMainAccount(user.id, accountId);
+      setAccounts((prev) =>
+        prev.map((a) => ({ ...a, isMain: a.id === accountId }))
+      );
+    } catch (err) {
+      alert("Couldn't set main account: " + err.message);
+    }
+  }
+
   function startEdit(tx) {
     setEditingTx(tx);
     setPage("add");
   }
 
-  // Navigation wrapper: tapping "Add" in the menu always means a NEW
-  // transaction, so we clear any leftover edit target first.
   function navigate(targetPage) {
     if (targetPage === "add") setEditingTx(null);
     setPage(targetPage);
   }
 
-  function addAccount(account) {
-    setAccounts((prev) => [...prev, account]);
-  }
-
-  // Mark one account as the main account (only one can be main at a time).
-  function setMainAccount(accountId) {
-    setAccounts((prev) =>
-      prev.map((acc) => ({ ...acc, isMain: acc.id === accountId }))
-    );
-  }
-
-  // Pick which screen component to show based on `page`.
   function renderPage() {
     switch (page) {
       case "add":
         return (
           <AddTransaction
-            // key forces a fresh form when switching between add/edit targets
             key={editingTx ? editingTx.id : "new"}
             categories={categories}
             accounts={accounts}
@@ -191,8 +205,12 @@ export default function App() {
   }
 
   return (
-    <Layout page={page} onNavigate={navigate}>
-      {renderPage()}
+    <Layout page={page} onNavigate={navigate} user={user} onSignOut={signOut}>
+      {loading ? (
+        <p className="text-sm text-neutral-500">Loading your money…</p>
+      ) : (
+        renderPage()
+      )}
     </Layout>
   );
 }

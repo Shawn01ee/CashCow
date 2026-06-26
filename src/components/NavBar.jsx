@@ -12,7 +12,7 @@ const NAV_ITEMS = [
   { key: "accounts", label: "Accounts", icon: "🏦" },
 ];
 
-export default function NavBar({ page, onNavigate }) {
+export default function NavBar({ page, onNavigate, user, onSignOut }) {
   return (
     <>
       {/* ---------- Desktop sidebar ---------- */}
@@ -37,9 +37,20 @@ export default function NavBar({ page, onNavigate }) {
             </button>
           ))}
         </nav>
-        <p className="mt-auto px-3 py-2 text-xs text-neutral-600">
-          v0.1 · your money, made simple
-        </p>
+        {/* User + logout pinned to the bottom of the sidebar */}
+        <div className="mt-auto border-t border-neutral-800 pt-3">
+          {user && (
+            <p className="truncate px-3 text-xs text-neutral-500" title={user.email}>
+              {user.email}
+            </p>
+          )}
+          <button
+            onClick={onSignOut}
+            className="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm text-neutral-400 hover:bg-neutral-800/60 hover:text-white"
+          >
+            ↪ Log out
+          </button>
+        </div>
       </aside>
 
       {/* ---------- Mobile bottom bar ---------- */}

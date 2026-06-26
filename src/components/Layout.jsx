@@ -3,10 +3,10 @@
 // `children` is whatever screen App decided to render.
 import NavBar from "./NavBar";
 
-export default function Layout({ page, onNavigate, children }) {
+export default function Layout({ page, onNavigate, user, onSignOut, children }) {
   return (
     <div className="min-h-screen md:flex bg-neutral-950 text-neutral-100">
-      <NavBar page={page} onNavigate={onNavigate} />
+      <NavBar page={page} onNavigate={onNavigate} user={user} onSignOut={onSignOut} />
 
       {/* Main content area. Extra bottom padding on mobile so the fixed
           bottom nav never covers the last bit of content. */}
