@@ -1,0 +1,24 @@
+/* cashcow.css — Buttercream theme font + animations.
+   Imported once in main.jsx. Pretendard font and the entrance keyframes
+   used by the redesigned screens. */
+
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.min.css');
+
+@keyframes ccUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ccPop {
+  0%   { transform: scale(.6); opacity: 0; }
+  60%  { transform: scale(1.12); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Auth layout: brand panel hidden on mobile, shown side-by-side on desktop. */
+.cc-auth { display: flex; min-height: 100vh; }
+.cc-auth-brand { display: none; }
+.cc-auth-form { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 0 24px; }
+@media (min-width: 880px) {
+  .cc-auth-brand { display: flex; flex: 1.05; }
+  .cc-auth-form { padding: 0 70px; }
+}
