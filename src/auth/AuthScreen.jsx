@@ -133,7 +133,7 @@ export default function AuthScreen() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                placeholder="your@email.com"
                 className={field}
                 autoFocus
               />
