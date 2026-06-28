@@ -1,4 +1,4 @@
-# 🐮 CashCow — Supabase + Vercel Setup Guide
+# 🐮 CashCow: Supabase + Vercel Setup Guide
 
 This guide turns CashCow into a real multi-user web app. Follow it top to
 bottom. Steps marked **👉 YOU** are things only you can do (creating accounts);
@@ -6,7 +6,7 @@ everything else is already coded.
 
 ---
 
-## Part A — Supabase (the database + login)
+## Part A: Supabase (the database + login)
 
 ### 1. 👉 Create a Supabase project
 1. Go to **https://supabase.com** → sign in → **New project**.
@@ -24,7 +24,7 @@ everything else is already coded.
 1. Go to **Project Settings → API**.
 2. Copy two values:
    - **Project URL**
-   - **anon / publishable** key (the public one — safe for the browser)
+   - **anon / publishable** key (the public one: safe for the browser)
 
 ### 4. 👉 Put the keys in `.env.local`
 In the project folder, create a file named `.env.local` (copy the example):
@@ -46,7 +46,7 @@ VITE_SUPABASE_ANON_KEY=eyJhbGci....
 ```bash
 npm run dev
 ```
-Open the app — you should now see a **login / sign-up** screen instead of the
+Open the app: you should now see a **login / sign-up** screen instead of the
 "setup needed" screen. Create an account, log in, and add a transaction.
 
 > **Optional (easier testing):** In Supabase → **Authentication → Providers →
@@ -55,10 +55,10 @@ Open the app — you should now see a **login / sign-up** screen instead of the
 
 ---
 
-## Part B — Vercel (put it online)
+## Part B: Vercel (put it online)
 
 ### 6. Push to GitHub
-Already done — the repo lives at the `origin` remote. Any new commits:
+Already done: the repo lives at the `origin` remote. Any new commits:
 ```bash
 git add -A && git commit -m "your message" && git push
 ```
@@ -77,7 +77,7 @@ git add -A && git commit -m "your message" && git push
 1. Supabase → **Authentication → URL Configuration**.
 2. Set **Site URL** to your Vercel URL and add it to **Redirect URLs**.
 
-That's it — send the link to friends. Each person signs up and only ever sees
+That's it: send the link to friends. Each person signs up and only ever sees
 their own data (enforced by RLS).
 
 ---
@@ -96,7 +96,7 @@ their own data (enforced by RLS).
 
 ## How the security works (short version)
 
-- The **anon key** is public and safe — it can only do what your **RLS
+- The **anon key** is public and safe: it can only do what your **RLS
   policies** allow.
 - Every table has policies like *"you may only touch rows where
   `user_id = auth.uid()`"*. So even with the same key, User A's queries can

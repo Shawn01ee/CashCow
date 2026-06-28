@@ -140,6 +140,25 @@ export async function setAccountBalance(accountId, balance) {
   if (error) throw error;
 }
 
+// Edit an account's name / currency / balance.
+export async function updateAccount(account) {
+  const { data, error } = await supabase
+    .from("accounts")
+    .update({ name: account.name, currency: account.currency, balance: account.balance })
+    .eq("id", account.id)
+    .select()
+    .single();
+  if (error) throw error;
+  return toAppAccount(data);
+}
+
+// Delete an account. Linked transactions keep their history (account_id is
+// set to null by the ON DELETE SET NULL rule in the schema).
+export async function deleteAccount(id) {
+  const { error } = await supabase.from("accounts").delete().eq("id", id);
+  if (error) throw error;
+}
+
 // Make one account the main one (clear the flag everywhere, then set it).
 export async function setMainAccount(userId, accountId) {
   const clear = await supabase

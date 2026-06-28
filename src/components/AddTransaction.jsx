@@ -150,7 +150,7 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: C.card, border: `1px solid ${C.border}`, borderRadius: R.md, padding: "12px 14px" }}>
           <div>
             <div style={{ fontSize: 14, color: C.ink, fontWeight: 700 }}>Fixed payment?</div>
-            <div style={{ fontSize: 12, color: C.muted }}>Rent, phone, subscriptions — things you can't easily skip.</div>
+            <div style={{ fontSize: 12, color: C.muted }}>Rent, phone, subscriptions: things you can't easily skip.</div>
           </div>
           <button type="button" onClick={() => setIsFixed((v) => !v)} style={{ position: "relative", height: 26, width: 46, borderRadius: 999, border: "none", cursor: "pointer", background: isFixed ? C.green : "#D9CFBE", flexShrink: 0 }}>
             <span style={{ position: "absolute", top: 3, left: 3, height: 20, width: 20, borderRadius: "50%", background: "#fff", transition: "transform .15s", transform: isFixed ? "translateX(20px)" : "translateX(0)" }} />

@@ -99,13 +99,13 @@ export default function AuthScreen() {
           <br />made simple
         </div>
         <div style={{ fontSize: 16, lineHeight: 1.6, opacity: 0.92, marginTop: 16 }}>
-          Track spending, bills and what's safe to spend —
+          Track spending, bills, and what's safe to spend,
           <br />all in one friendly place.
         </div>
         <div style={{ display: "flex", gap: 24, marginTop: 40 }}>
           <div>
-            <div style={{ fontSize: 24, fontWeight: 800 }}>$58/day</div>
-            <div style={{ fontSize: 13, opacity: 0.85 }}>safe to spend</div>
+            <div style={{ fontSize: 24, fontWeight: 800 }}>Daily</div>
+            <div style={{ fontSize: 13, opacity: 0.85 }}>safe-to-spend</div>
           </div>
           <div style={{ width: 1, background: "rgba(255,255,255,.25)" }} />
           <div>
@@ -152,7 +152,7 @@ export default function AuthScreen() {
                 {busy ? "Sending…" : "Send me a code"}
               </button>
               <div style={{ textAlign: "center", fontSize: 13, color: C.muted, marginTop: 2 }}>
-                No password to remember — we'll email you a code. 🐮
+                No password to remember. We'll email you a code. 🐮
               </div>
             </form>
           </>

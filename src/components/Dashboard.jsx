@@ -154,7 +154,7 @@ function Onboarding({ onNavigate }) {
         <ol style={{ margin: "16px 0 0", paddingLeft: 18, fontSize: 14, color: C.sub, lineHeight: 1.9 }}>
           <li>Add an account & balance</li>
           <li>Add your rent / phone bill as a fixed payment</li>
-          <li>Log a coffee or lunch — watch your "safe to spend"</li>
+          <li>Log a coffee or lunch, then watch your "safe to spend"</li>
         </ol>
         <button
           onClick={() => onNavigate("accounts")}

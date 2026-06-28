@@ -7,6 +7,7 @@ import Insights from "./components/Insights";
 import Accounts from "./components/Accounts";
 import FixedPayments from "./components/FixedPayments";
 import AuthScreen from "./auth/AuthScreen";
+import OnboardingScreen from "./auth/OnboardingScreen";
 import SetupNeeded from "./auth/SetupNeeded";
 import { useAuth } from "./auth/AuthContext";
 import { useToast } from "./components/Toast";
@@ -18,10 +19,22 @@ import * as api from "./lib/api";
 // ----------------------------------------------------------------------
 export default function App() {
   const { user, loading } = useAuth();
+  // Remember if the intro was already seen, so it only shows on first visit.
+  const [onboarded, setOnboarded] = useState(
+    () => localStorage.getItem("cashcow.onboarded") === "1"
+  );
+
+  function finishOnboarding() {
+    localStorage.setItem("cashcow.onboarded", "1");
+    setOnboarded(true);
+  }
 
   if (!isSupabaseConfigured) return <SetupNeeded />;
   if (loading) return <CenterMessage text="Loading…" />;
-  if (!user) return <AuthScreen />;
+  if (!user) {
+    if (!onboarded) return <OnboardingScreen onFinish={finishOnboarding} />;
+    return <AuthScreen />;
+  }
   return <CashCowApp user={user} />;
 }
 
@@ -176,24 +189,34 @@ function CashCowApp({ user }) {
   }
 
   async function setMainAccount(accountId) {
+    // Update the UI immediately, then persist (so the MAIN badge moves at once).
+    setAccounts((prev) => prev.map((a) => ({ ...a, isMain: a.id === accountId })));
     try {
       await api.setMainAccount(user.id, accountId);
-      setAccounts((prev) => prev.map((a) => ({ ...a, isMain: a.id === accountId })));
     } catch (err) {
       toast.error("Couldn't set main account: " + err.message);
     }
   }
 
-  // Set an account's balance to an exact value (manual correction).
-  async function editAccountBalance(accountId, newBalance) {
+  // Edit an account's name / currency / balance.
+  async function editAccount(account) {
+    setAccounts((prev) => prev.map((a) => (a.id === account.id ? { ...a, ...account } : a)));
     try {
-      await api.setAccountBalance(accountId, newBalance);
-      setAccounts((prev) =>
-        prev.map((a) => (a.id === accountId ? { ...a, balance: newBalance } : a))
-      );
-      toast.success("Balance updated");
+      await api.updateAccount(account);
+      toast.success("Account updated");
     } catch (err) {
-      toast.error("Couldn't update balance: " + err.message);
+      toast.error("Couldn't update account: " + err.message);
+    }
+  }
+
+  async function deleteAccount(accountId) {
+    const acc = accounts.find((a) => a.id === accountId);
+    setAccounts((prev) => prev.filter((a) => a.id !== accountId));
+    try {
+      await api.deleteAccount(accountId);
+      toast.success(`Deleted ${acc?.name || "account"}`);
+    } catch (err) {
+      toast.error("Couldn't delete: " + err.message);
     }
   }
 
@@ -319,7 +342,8 @@ function CashCowApp({ user }) {
             accounts={accounts}
             onAddAccount={addAccount}
             onSetMain={setMainAccount}
-            onEditBalance={editAccountBalance}
+            onEditAccount={editAccount}
+            onDeleteAccount={deleteAccount}
             user={user}
             onSignOut={signOut}
           />

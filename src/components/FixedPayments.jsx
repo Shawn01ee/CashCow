@@ -70,7 +70,7 @@ export default function FixedPayments({ fixedPayments, accounts, categories, onA
         </button>
       </div>
       <p style={{ margin: 0, fontSize: 14, color: C.sub, lineHeight: 1.5 }}>
-        Rent, phone, subscriptions — the bills you can't skip. Tap "Paid" when one goes out and CashCow logs it and moves the date forward.
+        Rent, phone, subscriptions: the bills you can't skip. Tap "Paid" when one goes out and CashCow logs it and moves the date forward.
       </p>
 
       {showForm && (
@@ -111,7 +111,7 @@ export default function FixedPayments({ fixedPayments, accounts, categories, onA
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fp.name}</div>
                   <div style={{ fontSize: 12, color: C.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {fp.category || "—"} · {acc ? acc.name : "no account"} · <span style={{ textTransform: "capitalize" }}>{fp.frequency}</span>
+                    {fp.category || "No category"} · {acc ? acc.name : "no account"} · <span style={{ textTransform: "capitalize" }}>{fp.frequency}</span>
                   </div>
                   <div style={{ fontSize: 12, color: C.sub, marginTop: 4 }}>Due {fp.nextDueDate} · in {days} day{days === 1 ? "" : "s"}</div>
                 </div>

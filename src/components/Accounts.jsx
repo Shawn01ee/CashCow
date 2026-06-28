@@ -5,7 +5,7 @@ import { useToast } from "./Toast";
 import { totalAudBalance, formatMoney } from "../utils/calculations";
 import { colors as C, radius as R } from "../theme/tokens";
 
-export default function Accounts({ accounts, onAddAccount, onSetMain, onEditBalance, user, onSignOut }) {
+export default function Accounts({ accounts, onAddAccount, onSetMain, onEditAccount, onDeleteAccount, user, onSignOut }) {
   const toast = useToast();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
@@ -78,7 +78,7 @@ export default function Accounts({ accounts, onAddAccount, onSetMain, onEditBala
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
         {accounts.map((acc) => (
-          <AccountCard key={acc.id} account={acc} onSetMain={onSetMain} onEditBalance={onEditBalance} />
+          <AccountCard key={acc.id} account={acc} onSetMain={onSetMain} onEditAccount={onEditAccount} onDeleteAccount={onDeleteAccount} />
         ))}
       </div>
 

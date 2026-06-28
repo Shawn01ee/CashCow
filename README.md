@@ -2,36 +2,34 @@
 
 **A student-focused cash-flow web app for international students.**
 
-CashCow isn't just an expense tracker — it answers the one question students
+CashCow isn't just an expense tracker. It answers the one question students
 actually care about: *"Can I safely spend money before my next rent, income, or
 bill?"* It combines a Notion-style structured finance model with a Toss-style
 clean, friendly dashboard.
-
-> _"You can safely spend about $58 per day until your next income."_
 
 ### 🔗 Live demo
 
 **https://cash-cow-indol.vercel.app/**
 
-Sign up with any email + password and you get your own private space — your data
-is never visible to other users (enforced by Postgres Row Level Security).
+Sign up with any email and you get your own private space. Your data is never
+visible to other users (enforced by Postgres Row Level Security).
 
 ---
 
 ## ✨ Features
 
-- **Accounts & login** — email/password auth; every user only ever sees their own data.
-- **Home dashboard** — total balance, this-month in/out, and a big **"safe to
+- **Accounts & login**: email/password auth; every user only ever sees their own data.
+- **Home dashboard**: total balance, this-month in/out, and a big **"safe to
   spend per day"** number that turns red when a bill isn't covered.
-- **Money Feed** — short, friendly coaching lines instead of cold numbers.
-- **Add / Edit / Delete transactions** — with one-tap quick-add chips (Coffee,
+- **Money Feed**: short, friendly coaching lines instead of cold numbers.
+- **Add / Edit / Delete transactions**: with one-tap quick-add chips (Coffee,
   Lunch, Groceries, Transport). Editing and deleting also fix account balances.
-- **Activity** — transactions grouped by date with filters (Income / Expense /
+- **Activity**: transactions grouped by date with filters (Income / Expense /
   Fixed / Variable).
-- **Insights** — donut chart + ranked category bars, fixed vs flexible split,
+- **Insights**: donut chart + ranked category bars, fixed vs flexible split,
   and plain-language spending tips.
 - **Multi-account & multi-currency** (AUD / KRW), with a "main account" badge.
-- **Cloud sync** — data is stored in Supabase Postgres, so it follows you across
+- **Cloud sync**: data is stored in Supabase Postgres, so it follows you across
   devices and browsers.
 
 ---
@@ -65,7 +63,7 @@ is never visible to other users (enforced by Postgres Row Level Security).
 ## 🛠️ Tech Stack
 
 - [React](https://react.dev) + [Vite](https://vite.dev) + [Tailwind CSS v4](https://tailwindcss.com)
-- [Supabase](https://supabase.com) — Auth + Postgres + Row Level Security
+- [Supabase](https://supabase.com): Auth + Postgres + Row Level Security
 - [Recharts](https://recharts.org) for the donut chart
 - [Vercel](https://vercel.com) for deployment
 - Plain JavaScript (no TypeScript yet)
@@ -95,10 +93,10 @@ Open the URL it prints (usually **http://localhost:5173**).
 
 Everything lives in your **Supabase** project dashboard:
 
-- **Table Editor** — browse every row like a spreadsheet. Tables:
+- **Table Editor**: browse every row like a spreadsheet. Tables:
   `accounts`, `categories`, `transactions`, `fixed_payments`, `profiles`.
-- **Authentication → Users** — the list of everyone who signed up.
-- **SQL Editor** — run queries directly, e.g.
+- **Authentication → Users**: the list of everyone who signed up.
+- **SQL Editor**: run queries directly, e.g.
   `select * from transactions order by transaction_date desc;`
 
 Because RLS is on, the **app** only ever shows a logged-in user their own rows —
@@ -137,7 +135,7 @@ supabase/
 
 ## 🔒 Security model (short version)
 
-- The **anon / publishable key** is safe in the browser — it can only do what the
+- The **anon / publishable key** is safe in the browser: it can only do what the
   **RLS policies** allow.
 - Every table has policies like *"you may only touch rows where
   `user_id = auth.uid()`"*. So even with the same public key, one user's queries
@@ -167,5 +165,5 @@ warning instead of a number.
 
 ---
 
-Built as a learning project — from a localStorage prototype to a deployed,
+Built as a learning project: from a localStorage prototype to a deployed,
 multi-user web service. 🐮💸
