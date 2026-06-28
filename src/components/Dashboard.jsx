@@ -1,6 +1,4 @@
-// Dashboard.jsx
-// The Home screen. It pulls numbers from the calculation helpers and lays
-// them out as friendly cards, plus the Money Feed and recent activity.
+// Dashboard.jsx — Home screen in the Buttercream theme.
 import StatCard from "./StatCard";
 import MoneyFeed from "./MoneyFeed";
 import {
@@ -14,6 +12,9 @@ import {
   daysUntil,
   formatMoney,
 } from "../utils/calculations";
+import { colors as C, radius as R, shadow as S } from "../theme/tokens";
+
+const card = { background: C.card, border: `1px solid ${C.border}`, borderRadius: R.xl, padding: 20 };
 
 export default function Dashboard({
   accounts,
@@ -23,11 +24,8 @@ export default function Dashboard({
   hasAccounts,
   onNavigate,
 }) {
-  // Brand-new user with no account yet → show a friendly onboarding card
-  // instead of a dashboard full of $0.00s.
   if (!hasAccounts) return <Onboarding onNavigate={onNavigate} />;
 
-  // Crunch all the numbers up front.
   const totalAud = totalAudBalance(accounts);
   const main = mainAccount(accounts);
   const income = monthlyIncome(transactions);
@@ -36,65 +34,61 @@ export default function Dashboard({
   const nextFP = nextFixedPayment(fixedPayments);
   const safe = safeToSpend(accounts, fixedPayments);
 
-  // Most recent 5 transactions for the little activity preview.
   const recent = [...transactions]
     .sort((a, b) => new Date(b.date) - new Date(a.date))
     .slice(0, 5);
-
-  // Quick lookup so a transaction's category name -> emoji icon.
-  const iconFor = (categoryName) =>
-    categories.find((c) => c.name === categoryName)?.icon || "💵";
+  const iconFor = (name) => categories.find((c) => c.name === name)?.icon || "💵";
 
   return (
-    <div className="space-y-5">
-      {/* Greeting / big balance */}
-      <header>
-        <p className="text-sm text-neutral-400">Good to see you 👋</p>
-        <h1 className="mt-1 text-3xl font-bold text-white">
+    <div style={{ animation: "ccUp .35s ease", display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* Hero: total balance */}
+      <div style={{ background: C.green, borderRadius: R["2xl"], padding: "26px 28px", color: "#fff", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", right: 22, top: 14, fontSize: 90, opacity: 0.16 }}>🐮</div>
+        <div style={{ fontSize: 14, opacity: 0.92, fontWeight: 600 }}>Total balance (AUD)</div>
+        <div style={{ fontSize: 42, fontWeight: 800, letterSpacing: "-.03em", margin: "6px 0 12px" }}>
           {formatMoney(totalAud)}
-        </h1>
-        <p className="text-sm text-neutral-500">
-          Total across your AUD accounts
-          {main ? ` · main: ${main.name} ${formatMoney(main.balance, main.currency)}` : ""}
-        </p>
-      </header>
+        </div>
+        {main && (
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: C.butter, color: "#5A4000", padding: "6px 13px", borderRadius: R.full, fontSize: 13, fontWeight: 800 }}>
+            Main · {main.name} {formatMoney(main.balance, main.currency)}
+          </div>
+        )}
+      </div>
 
-      {/* Safe to spend — the hero insight */}
+      {/* Safe to spend hero insight */}
       <div
-        className={`rounded-2xl p-5 ring-1 ${
-          safe.covered
-            ? "bg-emerald-500/10 ring-emerald-500/30"
-            : "bg-red-500/10 ring-red-500/30"
-        }`}
+        style={{
+          ...card,
+          background: safe.covered ? C.greenSoft : "#FFE9E2",
+          border: `1px solid ${safe.covered ? "#BFE9D2" : "#FFD2C5"}`,
+        }}
       >
-        <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
+        <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".04em", color: C.muted }}>
           Safe to spend per day
-        </p>
+        </div>
         {safe.covered ? (
           <>
-            <p className="mt-1 text-3xl font-bold text-emerald-400">
+            <div style={{ fontSize: 32, fontWeight: 800, color: C.greenDark, margin: "4px 0" }}>
               {formatMoney(safe.perDay)}
-            </p>
-            <p className="mt-1 text-sm text-neutral-300">
+            </div>
+            <div style={{ fontSize: 14, color: C.sub }}>
               {safe.target
                 ? `until ${safe.target.name} on ${safe.target.nextDueDate} (${safe.daysLeft} days)`
                 : "no upcoming fixed payments"}
-            </p>
+            </div>
           </>
         ) : (
           <>
-            <p className="mt-1 text-xl font-bold text-red-400">
+            <div style={{ fontSize: 19, fontWeight: 800, color: C.coral, margin: "4px 0" }}>
               Warning: your balance may not cover {safe.target?.name}.
-            </p>
-            <p className="mt-1 text-sm text-neutral-300">
-              You're about {formatMoney(safe.amountNeeded)} short.
-            </p>
+            </div>
+            <div style={{ fontSize: 14, color: C.sub }}>You're about {formatMoney(safe.amountNeeded)} short.</div>
           </>
         )}
       </div>
 
-      {/* This month at a glance */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* This month grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <StatCard label="This month in" value={formatMoney(income)} tone="positive" />
         <StatCard label="This month out" value={formatMoney(expense)} tone="negative" />
         <StatCard
@@ -103,92 +97,68 @@ export default function Dashboard({
           tone={net >= 0 ? "positive" : "negative"}
           hint={net >= 0 ? "income minus spending" : "spending more than you earned"}
         />
-        {/* Tappable — opens the Fixed Payments screen to manage bills. */}
-        <button onClick={() => onNavigate("fixed")} className="text-left">
+        <button onClick={() => onNavigate("fixed")} style={{ textAlign: "left", border: "none", padding: 0, background: "transparent", cursor: "pointer", fontFamily: "inherit" }}>
           <StatCard
             label="Next fixed payment ›"
             value={nextFP ? formatMoney(nextFP.amount, nextFP.currency) : "Add one"}
-            hint={
-              nextFP
-                ? `${nextFP.name} · in ${daysUntil(nextFP.nextDueDate)} days`
-                : "tap to add rent / phone bill"
-            }
+            hint={nextFP ? `${nextFP.name} · in ${daysUntil(nextFP.nextDueDate)} days` : "tap to add rent / phone bill"}
           />
         </button>
       </div>
 
-      {/* Coach messages */}
-      <MoneyFeed
-        accounts={accounts}
-        transactions={transactions}
-        fixedPayments={fixedPayments}
-      />
+      <MoneyFeed accounts={accounts} transactions={transactions} fixedPayments={fixedPayments} />
 
-      {/* Recent activity preview */}
-      <section className="rounded-2xl bg-neutral-900 p-4 ring-1 ring-neutral-800">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-neutral-300">Recent activity</h2>
-          <button
-            onClick={() => onNavigate("transactions")}
-            className="text-xs font-medium text-emerald-400 hover:underline"
-          >
-            See all
+      {/* Recent activity */}
+      <section style={card}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+          <h2 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: C.ink }}>Recent activity</h2>
+          <button onClick={() => onNavigate("transactions")} style={{ border: "none", background: "transparent", color: C.green, fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
+            See all ›
           </button>
         </div>
         {recent.length === 0 ? (
-          <p className="text-sm text-neutral-500">No transactions yet.</p>
+          <p style={{ fontSize: 14, color: C.muted, margin: 0 }}>No transactions yet.</p>
         ) : (
-          <ul className="divide-y divide-neutral-800">
-            {recent.map((tx) => (
-              <li key={tx.id} className="flex items-center gap-3 py-2.5">
-                <span className="text-xl">{iconFor(tx.category)}</span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm text-white">
-                    {tx.memo || tx.category}
-                  </p>
-                  <p className="truncate text-xs text-neutral-500">
-                    {tx.category} · {tx.date}
-                  </p>
-                </div>
-                <span
-                  className={`text-sm font-semibold ${
-                    tx.type === "income" ? "text-emerald-400" : "text-red-400"
-                  }`}
-                >
-                  {tx.type === "income" ? "+" : "-"}
-                  {formatMoney(tx.amount, tx.currency)}
-                </span>
-              </li>
-            ))}
-          </ul>
+          recent.map((tx) => (
+            <div key={tx.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: `1px solid ${C.divider}` }}>
+              <div style={{ width: 40, height: 40, borderRadius: R.md, background: C.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>
+                {iconFor(tx.category)}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tx.memo || tx.category}</div>
+                <div style={{ fontSize: 12, color: C.muted }}>{tx.category} · {tx.date}</div>
+              </div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: tx.type === "income" ? C.greenDark : C.ink }}>
+                {tx.type === "income" ? "+" : "−"}{formatMoney(tx.amount, tx.currency)}
+              </div>
+            </div>
+          ))
         )}
       </section>
     </div>
   );
 }
 
-// Shown to a brand-new user who hasn't created any account yet.
 function Onboarding({ onNavigate }) {
   return (
-    <div className="space-y-5">
-      <header>
-        <p className="text-sm text-neutral-400">Welcome to CashCow 🐮</p>
-        <h1 className="mt-1 text-2xl font-bold text-white">Let's set you up</h1>
-      </header>
-
-      <div className="rounded-2xl bg-neutral-900 p-6 ring-1 ring-neutral-800">
-        <p className="text-sm text-neutral-300">
-          CashCow works out how much you can safely spend each day. To start, add
-          your first account (like your bank) with its current balance.
+    <div style={{ animation: "ccUp .35s ease", display: "flex", flexDirection: "column", gap: 16 }}>
+      <div>
+        <p style={{ margin: 0, fontSize: 14, color: C.muted }}>Welcome to CashCow 🐮</p>
+        <h1 style={{ margin: "4px 0 0", fontSize: 24, fontWeight: 800, color: C.ink }}>Let's set you up</h1>
+      </div>
+      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: R.xl, padding: 24 }}>
+        <p style={{ margin: 0, fontSize: 14, color: C.sub, lineHeight: 1.6 }}>
+          CashCow works out how much you can safely spend each day. To start, add your
+          first account (like your bank) with its current balance.
         </p>
-        <ol className="mt-4 space-y-2 text-sm text-neutral-400">
-          <li>1️⃣ Add an account & balance</li>
-          <li>2️⃣ Add your rent / phone bill as a fixed payment</li>
-          <li>3️⃣ Log a coffee or lunch — and watch your “safe to spend”</li>
+        <ol style={{ margin: "16px 0 0", paddingLeft: 18, fontSize: 14, color: C.sub, lineHeight: 1.9 }}>
+          <li>Add an account & balance</li>
+          <li>Add your rent / phone bill as a fixed payment</li>
+          <li>Log a coffee or lunch — watch your "safe to spend"</li>
         </ol>
         <button
           onClick={() => onNavigate("accounts")}
-          className="mt-5 w-full rounded-xl bg-emerald-500 py-3 text-sm font-semibold text-neutral-950 hover:bg-emerald-400"
+          style={{ marginTop: 20, width: "100%", border: "none", cursor: "pointer", background: C.green, color: "#fff", fontSize: 15, fontWeight: 700, padding: 14, borderRadius: R.md, fontFamily: "inherit", boxShadow: S.card }}
         >
           Create my first account
         </button>

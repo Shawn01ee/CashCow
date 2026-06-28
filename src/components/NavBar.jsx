@@ -1,10 +1,6 @@
-// NavBar.jsx
-// Two navigations in one component:
-//   - a vertical sidebar on desktop (md and up)
-//   - a fixed bottom bar on mobile
-// We render both and use Tailwind's responsive classes to show/hide them.
+// NavBar.jsx — Buttercream sidebar (desktop) + bottom nav (mobile).
+import { colors as C, radius as R, font } from "../theme/tokens";
 
-// Mobile bottom bar keeps 5 items so it doesn't get cramped.
 const NAV_ITEMS = [
   { key: "home", label: "Home", icon: "🏠" },
   { key: "add", label: "Add", icon: "➕" },
@@ -13,7 +9,6 @@ const NAV_ITEMS = [
   { key: "accounts", label: "Accounts", icon: "🏦" },
 ];
 
-// Desktop sidebar has more room, so it also shows Fixed payments.
 const DESKTOP_ITEMS = [
   ...NAV_ITEMS.slice(0, 4),
   { key: "fixed", label: "Fixed payments", icon: "🔁" },
@@ -23,58 +18,86 @@ const DESKTOP_ITEMS = [
 export default function NavBar({ page, onNavigate, user, onSignOut }) {
   return (
     <>
-      {/* ---------- Desktop sidebar ---------- */}
-      <aside className="hidden md:flex md:flex-col md:w-60 md:shrink-0 md:h-screen md:sticky md:top-0 border-r border-neutral-800 bg-neutral-950 p-4">
-        <div className="flex items-center gap-2 px-2 py-4 text-2xl font-bold">
-          <span>🐮</span>
-          <span className="text-white">CashCow</span>
+      {/* Desktop sidebar */}
+      <aside
+        className="cc-sidebar"
+        style={{
+          width: 236,
+          flexShrink: 0,
+          background: C.card,
+          borderRight: `1px solid ${C.border}`,
+          flexDirection: "column",
+          padding: "26px 18px",
+          fontFamily: font.family,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 8px 26px" }}>
+          <div style={{ width: 38, height: 38, borderRadius: R.md, background: C.butter, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>🐮</div>
+          <span style={{ fontSize: 19, fontWeight: 800, color: C.ink, letterSpacing: "-.02em" }}>CashCow</span>
         </div>
-        <nav className="mt-4 flex flex-col gap-1">
-          {DESKTOP_ITEMS.map((item) => (
-            <button
-              key={item.key}
-              onClick={() => onNavigate(item.key)}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors ${
-                page === item.key
-                  ? "bg-emerald-500/15 text-emerald-400"
-                  : "text-neutral-400 hover:bg-neutral-800/60 hover:text-white"
-              }`}
-            >
-              <span className="text-lg">{item.icon}</span>
-              {item.label}
-            </button>
-          ))}
-        </nav>
-        {/* User + logout pinned to the bottom of the sidebar */}
-        <div className="mt-auto border-t border-neutral-800 pt-3">
-          {user && (
-            <p className="truncate px-3 text-xs text-neutral-500" title={user.email}>
-              {user.email}
-            </p>
-          )}
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          {DESKTOP_ITEMS.map((item) => {
+            const active = page === item.key;
+            return (
+              <button
+                key={item.key}
+                onClick={() => onNavigate(item.key)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 12,
+                  padding: "12px 14px", borderRadius: 14, cursor: "pointer",
+                  fontSize: 15, border: "none", textAlign: "left",
+                  fontFamily: "inherit",
+                  background: active ? C.greenSoft : "transparent",
+                  color: active ? C.greenDark : C.sub,
+                  fontWeight: active ? 700 : 600,
+                }}
+              >
+                <span style={{ fontSize: 17 }}>{item.icon}</span>
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+        {/* user + logout */}
+        <div style={{ marginTop: "auto", background: C.bg, borderRadius: R.lg, padding: 14 }}>
+          <div style={{ fontSize: 12, color: C.muted }}>Signed in as</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {user?.email}
+          </div>
           <button
             onClick={onSignOut}
-            className="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm text-neutral-400 hover:bg-neutral-800/60 hover:text-white"
+            style={{
+              marginTop: 10, width: "100%", border: `1px solid ${C.border}`,
+              background: "#fff", color: C.sub, borderRadius: R.md,
+              padding: "8px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+            }}
           >
             ↪ Log out
           </button>
         </div>
       </aside>
 
-      {/* ---------- Mobile bottom bar ---------- */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-20 border-t border-neutral-800 bg-neutral-950/95 backdrop-blur flex justify-around px-1 py-1.5">
-        {NAV_ITEMS.map((item) => (
-          <button
-            key={item.key}
-            onClick={() => onNavigate(item.key)}
-            className={`flex flex-1 flex-col items-center gap-0.5 rounded-lg py-1.5 text-[11px] font-medium transition-colors ${
-              page === item.key ? "text-emerald-400" : "text-neutral-500"
-            }`}
-          >
-            <span className="text-xl">{item.icon}</span>
-            {item.label}
-          </button>
-        ))}
+      {/* Mobile bottom nav */}
+      <nav className="cc-bottomnav" style={{ fontFamily: font.family }}>
+        {NAV_ITEMS.map((item) => {
+          const active = page === item.key;
+          return (
+            <button
+              key={item.key}
+              onClick={() => onNavigate(item.key)}
+              style={{
+                flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
+                gap: 2, padding: "6px 0", border: "none", background: "transparent",
+                cursor: "pointer", fontFamily: "inherit",
+                fontSize: 11, fontWeight: 600,
+                color: active ? C.greenDark : C.sub,
+              }}
+            >
+              <span style={{ fontSize: 20 }}>{item.icon}</span>
+              {item.label}
+            </button>
+          );
+        })}
       </nav>
     </>
   );

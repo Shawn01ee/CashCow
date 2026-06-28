@@ -5,14 +5,14 @@
    rules so the dark theme feels consistent everywhere. */
 
 html {
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: "Pretendard", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
-  background-color: #0a0a0b; /* near black */
-  color: #f5f5f5;
+  background-color: #EBE3D2; /* buttercream app background */
+  color: #2A2520; /* ink */
 }
 
 /* Hide number input spinners for a cleaner form look */

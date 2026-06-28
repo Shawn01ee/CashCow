@@ -14,6 +14,22 @@
   100% { transform: scale(1); opacity: 1; }
 }
 
+/* App shell: sidebar on desktop, bottom nav on mobile. */
+.cc-shell { min-height: 100vh; background: #FBF6EC; }
+.cc-main { padding: 22px 16px 96px; }
+.cc-sidebar { display: none; }
+.cc-bottomnav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+  display: flex; justify-content: space-around;
+  background: #fff; border-top: 1px solid #F0E9DA; padding: 6px 4px;
+}
+@media (min-width: 768px) {
+  .cc-shell { display: flex; }
+  .cc-main { flex: 1; padding: 26px 32px 36px; min-width: 0; }
+  .cc-sidebar { display: flex; }
+  .cc-bottomnav { display: none; }
+}
+
 /* Auth layout: brand panel hidden on mobile, shown side-by-side on desktop. */
 .cc-auth { display: flex; min-height: 100vh; }
 .cc-auth-brand { display: none; }
