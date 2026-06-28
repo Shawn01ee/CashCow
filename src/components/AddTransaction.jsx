@@ -4,6 +4,7 @@
 // data and can build a clean transaction object on submit.
 import { useState } from "react";
 import { quickAdds } from "../data/sampleData";
+import { useToast } from "./Toast";
 
 // Today's date as YYYY-MM-DD, used as the default date.
 function today() {
@@ -17,8 +18,11 @@ export default function AddTransaction({
   onAdd,
   onUpdate,
   onCancel,
+  onNavigate,
 }) {
+  const toast = useToast();
   const isEditing = Boolean(editingTx);
+  const [submitting, setSubmitting] = useState(false);
 
   // Each field is a piece of state. When editing, we seed it from editingTx.
   // (App passes a unique `key`, so this component remounts and re-seeds
@@ -34,6 +38,28 @@ export default function AddTransaction({
   const [date, setDate] = useState(editingTx?.date || today());
   const [isFixed, setIsFixed] = useState(editingTx?.isFixed || false);
 
+  // Can't add a transaction without an account to attach it to.
+  if (accounts.length === 0) {
+    return (
+      <div className="space-y-5">
+        <h1 className="text-2xl font-bold text-white">Add transaction</h1>
+        <div className="rounded-2xl bg-neutral-900 p-6 text-center ring-1 ring-neutral-800">
+          <p className="text-3xl">🏦</p>
+          <p className="mt-2 text-sm text-neutral-300">Add an account first</p>
+          <p className="mt-1 text-xs text-neutral-500">
+            Transactions go in and out of an account, so let's create one.
+          </p>
+          <button
+            onClick={() => onNavigate("accounts")}
+            className="mt-4 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-neutral-950 hover:bg-emerald-400"
+          >
+            Go to Accounts
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Only show categories that match the selected type (income vs expense).
   const visibleCategories = categories.filter((c) => c.type === type);
 
@@ -45,15 +71,15 @@ export default function AddTransaction({
     setCurrency("AUD");
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const numericAmount = parseFloat(amount);
     if (!numericAmount || numericAmount <= 0) {
-      alert("Please enter an amount greater than 0.");
+      toast.error("Please enter an amount greater than 0.");
       return;
     }
     if (!category) {
-      alert("Please pick a category.");
+      toast.error("Please pick a category.");
       return;
     }
 
@@ -72,8 +98,14 @@ export default function AddTransaction({
     };
 
     // App handles saving + balance update + navigation for both cases.
-    if (isEditing) onUpdate(tx);
-    else onAdd(tx);
+    // We await so the button can show a "saving…" state.
+    setSubmitting(true);
+    try {
+      if (isEditing) await onUpdate(tx);
+      else await onAdd(tx);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   // Shared styling for inputs so the form stays consistent.
@@ -244,9 +276,10 @@ export default function AddTransaction({
           )}
           <button
             type="submit"
-            className="flex-1 rounded-xl bg-emerald-500 py-3 text-sm font-semibold text-neutral-950 hover:bg-emerald-400"
+            disabled={submitting}
+            className="flex-1 rounded-xl bg-emerald-500 py-3 text-sm font-semibold text-neutral-950 hover:bg-emerald-400 disabled:opacity-60"
           >
-            {isEditing ? "Save changes" : "Save transaction"}
+            {submitting ? "Saving…" : isEditing ? "Save changes" : "Save transaction"}
           </button>
         </div>
       </form>

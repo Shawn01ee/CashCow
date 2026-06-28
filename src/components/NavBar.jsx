@@ -4,12 +4,20 @@
 //   - a fixed bottom bar on mobile
 // We render both and use Tailwind's responsive classes to show/hide them.
 
+// Mobile bottom bar keeps 5 items so it doesn't get cramped.
 const NAV_ITEMS = [
   { key: "home", label: "Home", icon: "🏠" },
   { key: "add", label: "Add", icon: "➕" },
   { key: "transactions", label: "Activity", icon: "📒" },
   { key: "insights", label: "Insights", icon: "📊" },
   { key: "accounts", label: "Accounts", icon: "🏦" },
+];
+
+// Desktop sidebar has more room, so it also shows Fixed payments.
+const DESKTOP_ITEMS = [
+  ...NAV_ITEMS.slice(0, 4),
+  { key: "fixed", label: "Fixed payments", icon: "🔁" },
+  NAV_ITEMS[4],
 ];
 
 export default function NavBar({ page, onNavigate, user, onSignOut }) {
@@ -22,7 +30,7 @@ export default function NavBar({ page, onNavigate, user, onSignOut }) {
           <span className="text-white">CashCow</span>
         </div>
         <nav className="mt-4 flex flex-col gap-1">
-          {NAV_ITEMS.map((item) => (
+          {DESKTOP_ITEMS.map((item) => (
             <button
               key={item.key}
               onClick={() => onNavigate(item.key)}

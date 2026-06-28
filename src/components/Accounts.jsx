@@ -2,9 +2,11 @@
 // Lists account cards and provides a small form to add a new account.
 import { useState } from "react";
 import AccountCard from "./AccountCard";
+import { useToast } from "./Toast";
 import { totalAudBalance, formatMoney } from "../utils/calculations";
 
-export default function Accounts({ accounts, onAddAccount, onSetMain }) {
+export default function Accounts({ accounts, onAddAccount, onSetMain, user, onSignOut }) {
+  const toast = useToast();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
   const [currency, setCurrency] = useState("AUD");
@@ -15,7 +17,7 @@ export default function Accounts({ accounts, onAddAccount, onSetMain }) {
   function handleSubmit(e) {
     e.preventDefault();
     if (!name.trim()) {
-      alert("Please give the account a name.");
+      toast.error("Please give the account a name.");
       return;
     }
     const account = {
@@ -96,6 +98,19 @@ export default function Accounts({ accounts, onAddAccount, onSetMain }) {
         {accounts.map((acc) => (
           <AccountCard key={acc.id} account={acc} onSetMain={onSetMain} />
         ))}
+      </div>
+
+      {/* Account / logout — also the logout path for mobile users, since the
+          bottom nav has no room for it. */}
+      <div className="mt-2 rounded-2xl bg-neutral-900 p-4 ring-1 ring-neutral-800">
+        <p className="text-xs text-neutral-500">Signed in as</p>
+        <p className="truncate text-sm text-white">{user?.email}</p>
+        <button
+          onClick={onSignOut}
+          className="mt-3 w-full rounded-xl bg-neutral-800 py-2.5 text-sm font-medium text-neutral-300 ring-1 ring-neutral-700 hover:text-white"
+        >
+          ↪ Log out
+        </button>
       </div>
     </div>
   );

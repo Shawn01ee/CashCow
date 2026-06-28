@@ -20,8 +20,13 @@ export default function Dashboard({
   transactions,
   fixedPayments,
   categories,
+  hasAccounts,
   onNavigate,
 }) {
+  // Brand-new user with no account yet → show a friendly onboarding card
+  // instead of a dashboard full of $0.00s.
+  if (!hasAccounts) return <Onboarding onNavigate={onNavigate} />;
+
   // Crunch all the numbers up front.
   const totalAud = totalAudBalance(accounts);
   const main = mainAccount(accounts);
@@ -98,15 +103,18 @@ export default function Dashboard({
           tone={net >= 0 ? "positive" : "negative"}
           hint={net >= 0 ? "income minus spending" : "spending more than you earned"}
         />
-        <StatCard
-          label="Next fixed payment"
-          value={nextFP ? formatMoney(nextFP.amount, nextFP.currency) : "—"}
-          hint={
-            nextFP
-              ? `${nextFP.name} · in ${daysUntil(nextFP.nextDueDate)} days`
-              : "nothing scheduled"
-          }
-        />
+        {/* Tappable — opens the Fixed Payments screen to manage bills. */}
+        <button onClick={() => onNavigate("fixed")} className="text-left">
+          <StatCard
+            label="Next fixed payment ›"
+            value={nextFP ? formatMoney(nextFP.amount, nextFP.currency) : "Add one"}
+            hint={
+              nextFP
+                ? `${nextFP.name} · in ${daysUntil(nextFP.nextDueDate)} days`
+                : "tap to add rent / phone bill"
+            }
+          />
+        </button>
       </div>
 
       {/* Coach messages */}
@@ -155,6 +163,36 @@ export default function Dashboard({
           </ul>
         )}
       </section>
+    </div>
+  );
+}
+
+// Shown to a brand-new user who hasn't created any account yet.
+function Onboarding({ onNavigate }) {
+  return (
+    <div className="space-y-5">
+      <header>
+        <p className="text-sm text-neutral-400">Welcome to CashCow 🐮</p>
+        <h1 className="mt-1 text-2xl font-bold text-white">Let's set you up</h1>
+      </header>
+
+      <div className="rounded-2xl bg-neutral-900 p-6 ring-1 ring-neutral-800">
+        <p className="text-sm text-neutral-300">
+          CashCow works out how much you can safely spend each day. To start, add
+          your first account (like your bank) with its current balance.
+        </p>
+        <ol className="mt-4 space-y-2 text-sm text-neutral-400">
+          <li>1️⃣ Add an account & balance</li>
+          <li>2️⃣ Add your rent / phone bill as a fixed payment</li>
+          <li>3️⃣ Log a coffee or lunch — and watch your “safe to spend”</li>
+        </ol>
+        <button
+          onClick={() => onNavigate("accounts")}
+          className="mt-5 w-full rounded-xl bg-emerald-500 py-3 text-sm font-semibold text-neutral-950 hover:bg-emerald-400"
+        >
+          Create my first account
+        </button>
+      </div>
     </div>
   );
 }

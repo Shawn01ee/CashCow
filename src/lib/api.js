@@ -154,3 +154,47 @@ export async function setMainAccount(userId, accountId) {
     .eq("id", accountId);
   if (error) throw error;
 }
+
+// ---------- Fixed payments ----------
+export async function insertFixedPayment(userId, fp) {
+  const { data, error } = await supabase
+    .from("fixed_payments")
+    .insert({
+      user_id: userId,
+      account_id: fp.accountId,
+      name: fp.name,
+      amount: fp.amount,
+      currency: fp.currency,
+      category: fp.category,
+      frequency: fp.frequency,
+      next_due_date: fp.nextDueDate,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return toAppFixed(data);
+}
+
+export async function updateFixedPayment(fp) {
+  const { data, error } = await supabase
+    .from("fixed_payments")
+    .update({
+      account_id: fp.accountId,
+      name: fp.name,
+      amount: fp.amount,
+      currency: fp.currency,
+      category: fp.category,
+      frequency: fp.frequency,
+      next_due_date: fp.nextDueDate,
+    })
+    .eq("id", fp.id)
+    .select()
+    .single();
+  if (error) throw error;
+  return toAppFixed(data);
+}
+
+export async function deleteFixedPayment(id) {
+  const { error } = await supabase.from("fixed_payments").delete().eq("id", id);
+  if (error) throw error;
+}

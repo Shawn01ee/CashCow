@@ -138,6 +138,11 @@ begin
   insert into profiles (id, display_name)
   values (new.id, split_part(new.email, '@', 1));
 
+  -- Give every new user a default main account so the app isn't empty
+  -- on first login. They can rename it or add more later.
+  insert into accounts (user_id, name, currency, balance, is_main)
+  values (new.id, 'Main', 'AUD', 0, true);
+
   insert into categories (user_id, name, type, icon, is_fixed) values
     (new.id, 'Rent', 'expense', '🏠', true),
     (new.id, 'Groceries', 'expense', '🛒', false),

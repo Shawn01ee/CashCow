@@ -5,18 +5,16 @@ import AddTransaction from "./components/AddTransaction";
 import TransactionsList from "./components/TransactionsList";
 import Insights from "./components/Insights";
 import Accounts from "./components/Accounts";
+import FixedPayments from "./components/FixedPayments";
 import AuthScreen from "./auth/AuthScreen";
 import SetupNeeded from "./auth/SetupNeeded";
 import { useAuth } from "./auth/AuthContext";
+import { useToast } from "./components/Toast";
 import { isSupabaseConfigured } from "./lib/supabase";
 import * as api from "./lib/api";
 
 // ----------------------------------------------------------------------
-// App = the "gate". It decides what to show based on setup + login state:
-//   - no Supabase keys      -> SetupNeeded screen
-//   - still checking session -> a small loading screen
-//   - not logged in          -> AuthScreen (login / signup)
-//   - logged in              -> the real CashCowApp
+// App = the "gate": decides what to show based on setup + login state.
 // ----------------------------------------------------------------------
 export default function App() {
   const { user, loading } = useAuth();
@@ -35,24 +33,36 @@ function CenterMessage({ text }) {
   );
 }
 
+// Move a due date forward by one cycle. "once" payments have no next date.
+function advanceDueDate(dateStr, frequency) {
+  const d = new Date(dateStr);
+  if (frequency === "weekly") d.setDate(d.getDate() + 7);
+  else if (frequency === "fortnightly") d.setDate(d.getDate() + 14);
+  else if (frequency === "monthly") d.setMonth(d.getMonth() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 // ----------------------------------------------------------------------
 // CashCowApp = the actual app, shown once a user is logged in.
-// It loads that user's data from Supabase and writes changes back.
 // ----------------------------------------------------------------------
 function CashCowApp({ user }) {
   const { signOut } = useAuth();
+  const toast = useToast();
 
   const [page, setPage] = useState("home");
   const [editingTx, setEditingTx] = useState(null);
 
-  // Data for the logged-in user.
   const [accounts, setAccounts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [fixedPayments, setFixedPayments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Load everything once, when this user's app mounts.
+  // Load everything once for this user.
   useEffect(() => {
     let active = true;
     api
@@ -64,28 +74,42 @@ function CashCowApp({ user }) {
         setTransactions(data.transactions);
         setFixedPayments(data.fixedPayments);
       })
-      .catch((err) => alert("Couldn't load your data: " + err.message))
+      .catch((err) => toast.error("Couldn't load your data: " + err.message))
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
   }, [user.id]);
 
-  // ---- Balance helpers (same logic as before) ----
+  const hasAccounts = accounts.length > 0;
+
+  // ---- Balance helpers ----
   const txEffect = (tx) => (tx.type === "income" ? tx.amount : -tx.amount);
 
-  // Update one account's balance in BOTH local state and the database.
+  // Apply a delta to one account in BOTH local state and the database.
+  // Uses a functional setState so back-to-back calls never read a stale value.
   async function changeBalance(accountId, delta) {
-    const acc = accounts.find((a) => a.id === accountId);
-    if (!acc) return;
-    const newBalance = acc.balance + delta;
+    if (!delta) return;
+    let newBalance = null;
     setAccounts((prev) =>
-      prev.map((a) => (a.id === accountId ? { ...a, balance: newBalance } : a))
+      prev.map((a) => {
+        if (a.id !== accountId) return a;
+        newBalance = a.balance + delta;
+        return { ...a, balance: newBalance };
+      })
     );
-    await api.setAccountBalance(accountId, newBalance);
+    if (newBalance !== null) await api.setAccountBalance(accountId, newBalance);
   }
 
-  // ---- Actions ----
+  // Apply a map of { accountId: delta } — used so an edit touches each
+  // account exactly once (fixes the double-update bug).
+  async function applyDeltas(deltas) {
+    for (const [accId, delta] of Object.entries(deltas)) {
+      await changeBalance(accId, delta);
+    }
+  }
+
+  // ---- Transaction actions ----
   async function addTransaction(tx) {
     try {
       const saved = await api.insertTransaction(user.id, tx);
@@ -93,7 +117,7 @@ function CashCowApp({ user }) {
       await changeBalance(saved.accountId, txEffect(saved));
       setPage("transactions");
     } catch (err) {
-      alert("Couldn't save: " + err.message);
+      toast.error("Couldn't save: " + err.message);
     }
   }
 
@@ -102,13 +126,19 @@ function CashCowApp({ user }) {
       const old = transactions.find((t) => t.id === updated.id);
       const saved = await api.updateTransaction(updated);
       setTransactions((prev) => prev.map((t) => (t.id === saved.id ? saved : t)));
-      // Reverse the old effect, then apply the new one.
-      if (old) await changeBalance(old.accountId, -txEffect(old));
-      await changeBalance(saved.accountId, txEffect(saved));
+
+      // Net balance change PER account: undo old effect, apply new effect.
+      // If the account is unchanged these combine into a single delta.
+      const deltas = {};
+      if (old) deltas[old.accountId] = (deltas[old.accountId] || 0) - txEffect(old);
+      deltas[saved.accountId] = (deltas[saved.accountId] || 0) + txEffect(saved);
+      await applyDeltas(deltas);
+
       setEditingTx(null);
       setPage("transactions");
+      toast.success("Transaction updated");
     } catch (err) {
-      alert("Couldn't update: " + err.message);
+      toast.error("Couldn't update: " + err.message);
     }
   }
 
@@ -118,36 +148,100 @@ function CashCowApp({ user }) {
       await api.deleteTransaction(id);
       setTransactions((prev) => prev.filter((t) => t.id !== id));
       if (tx) await changeBalance(tx.accountId, -txEffect(tx));
+      toast.success("Transaction deleted");
     } catch (err) {
-      alert("Couldn't delete: " + err.message);
+      toast.error("Couldn't delete: " + err.message);
     }
   }
 
+  // ---- Account actions ----
   async function addAccount(account) {
     try {
       const saved = await api.insertAccount(user.id, account);
       setAccounts((prev) => [...prev, saved]);
+      toast.success(`Added ${saved.name}`);
     } catch (err) {
-      alert("Couldn't add account: " + err.message);
+      toast.error("Couldn't add account: " + err.message);
     }
   }
 
   async function setMainAccount(accountId) {
     try {
       await api.setMainAccount(user.id, accountId);
-      setAccounts((prev) =>
-        prev.map((a) => ({ ...a, isMain: a.id === accountId }))
-      );
+      setAccounts((prev) => prev.map((a) => ({ ...a, isMain: a.id === accountId })));
     } catch (err) {
-      alert("Couldn't set main account: " + err.message);
+      toast.error("Couldn't set main account: " + err.message);
     }
   }
 
+  // ---- Fixed payment actions ----
+  async function addFixedPayment(fp) {
+    try {
+      const saved = await api.insertFixedPayment(user.id, fp);
+      setFixedPayments((prev) => [...prev, saved]);
+      toast.success(`Added ${saved.name}`);
+    } catch (err) {
+      toast.error("Couldn't add: " + err.message);
+    }
+  }
+
+  async function updateFixedPayment(fp) {
+    try {
+      const saved = await api.updateFixedPayment(fp);
+      setFixedPayments((prev) => prev.map((f) => (f.id === saved.id ? saved : f)));
+      toast.success("Fixed payment updated");
+    } catch (err) {
+      toast.error("Couldn't update: " + err.message);
+    }
+  }
+
+  async function deleteFixedPayment(id) {
+    try {
+      await api.deleteFixedPayment(id);
+      setFixedPayments((prev) => prev.filter((f) => f.id !== id));
+      toast.success("Fixed payment deleted");
+    } catch (err) {
+      toast.error("Couldn't delete: " + err.message);
+    }
+  }
+
+  // "Paid": create a real expense, subtract from the account, and either
+  // advance the due date or remove a one-off payment.
+  async function markFixedPaid(fp) {
+    try {
+      const tx = {
+        type: "expense",
+        amount: fp.amount,
+        currency: fp.currency,
+        category: fp.category || "Other",
+        accountId: fp.accountId,
+        memo: fp.name,
+        date: todayStr(),
+        isFixed: true,
+      };
+      const savedTx = await api.insertTransaction(user.id, tx);
+      setTransactions((prev) => [savedTx, ...prev]);
+      await changeBalance(savedTx.accountId, txEffect(savedTx));
+
+      if (fp.frequency === "once") {
+        await api.deleteFixedPayment(fp.id);
+        setFixedPayments((prev) => prev.filter((f) => f.id !== fp.id));
+      } else {
+        const next = { ...fp, nextDueDate: advanceDueDate(fp.nextDueDate, fp.frequency) };
+        const saved = await api.updateFixedPayment(next);
+        setFixedPayments((prev) => prev.map((f) => (f.id === saved.id ? saved : f)));
+      }
+      toast.success(`${fp.name} paid`);
+    } catch (err) {
+      toast.error("Couldn't mark paid: " + err.message);
+    }
+  }
+
+  // ---- Navigation ----
   function startEdit(tx) {
     setEditingTx(tx);
     setPage("add");
   }
-
   function navigate(targetPage) {
     if (targetPage === "add") setEditingTx(null);
     setPage(targetPage);
@@ -164,6 +258,7 @@ function CashCowApp({ user }) {
             editingTx={editingTx}
             onAdd={addTransaction}
             onUpdate={updateTransaction}
+            onNavigate={navigate}
             onCancel={() => {
               setEditingTx(null);
               setPage("transactions");
@@ -182,12 +277,27 @@ function CashCowApp({ user }) {
         );
       case "insights":
         return <Insights transactions={transactions} />;
+      case "fixed":
+        return (
+          <FixedPayments
+            fixedPayments={fixedPayments}
+            accounts={accounts}
+            categories={categories}
+            onAdd={addFixedPayment}
+            onUpdate={updateFixedPayment}
+            onDelete={deleteFixedPayment}
+            onMarkPaid={markFixedPaid}
+            onNavigate={navigate}
+          />
+        );
       case "accounts":
         return (
           <Accounts
             accounts={accounts}
             onAddAccount={addAccount}
             onSetMain={setMainAccount}
+            user={user}
+            onSignOut={signOut}
           />
         );
       case "home":
@@ -198,6 +308,7 @@ function CashCowApp({ user }) {
             transactions={transactions}
             fixedPayments={fixedPayments}
             categories={categories}
+            hasAccounts={hasAccounts}
             onNavigate={navigate}
           />
         );

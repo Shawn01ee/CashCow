@@ -13,15 +13,11 @@ export default function TransactionsList({
   onDelete,
 }) {
   const [filter, setFilter] = useState("All");
+  const [pendingDelete, setPendingDelete] = useState(null); // tx awaiting confirm
 
-  // Ask before permanently removing a transaction.
-  function handleDelete(tx) {
-    const ok = window.confirm(
-      `Delete "${tx.memo || tx.category}" (${tx.type === "income" ? "+" : "-"}${
-        tx.amount
-      })? This also adjusts the account balance back.`
-    );
-    if (ok) onDelete(tx.id);
+  function confirmDelete() {
+    if (pendingDelete) onDelete(pendingDelete.id);
+    setPendingDelete(null);
   }
 
   // Helper lookups so each row can show icon + account name.
@@ -109,7 +105,7 @@ export default function TransactionsList({
                       ✏️
                     </button>
                     <button
-                      onClick={() => handleDelete(tx)}
+                      onClick={() => setPendingDelete(tx)}
                       aria-label="Delete"
                       className="rounded-lg px-2 py-1 text-sm text-neutral-400 hover:bg-neutral-800 hover:text-red-400"
                     >
@@ -121,6 +117,41 @@ export default function TransactionsList({
             </ul>
           </section>
         ))
+      )}
+
+      {/* In-app delete confirmation (replaces window.confirm) */}
+      {pendingDelete && (
+        <div
+          className="fixed inset-0 z-40 flex items-end justify-center bg-black/60 p-4 sm:items-center"
+          onClick={() => setPendingDelete(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl bg-neutral-900 p-5 ring-1 ring-neutral-700"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-sm font-semibold text-white">Delete this transaction?</p>
+            <p className="mt-1 text-xs text-neutral-400">
+              “{pendingDelete.memo || pendingDelete.category}” ·{" "}
+              {pendingDelete.type === "income" ? "+" : "-"}
+              {formatMoney(pendingDelete.amount, pendingDelete.currency)}. The account
+              balance will be adjusted back.
+            </p>
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={() => setPendingDelete(null)}
+                className="flex-1 rounded-xl bg-neutral-800 py-2.5 text-sm font-medium text-neutral-300 ring-1 ring-neutral-700 hover:text-white"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 rounded-xl bg-red-500 py-2.5 text-sm font-semibold text-white hover:bg-red-400"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
