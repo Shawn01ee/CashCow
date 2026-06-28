@@ -126,14 +126,14 @@ export default function AuthScreen() {
           >
             <div>
               <label className="mb-1 block text-xs font-medium text-neutral-400">
-                Email address
+                Email
               </label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@uni.edu"
+                placeholder="you@example.com"
                 className={field}
                 autoFocus
               />
