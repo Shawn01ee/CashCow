@@ -5,7 +5,7 @@ import AccountCard from "./AccountCard";
 import { useToast } from "./Toast";
 import { totalAudBalance, formatMoney } from "../utils/calculations";
 
-export default function Accounts({ accounts, onAddAccount, onSetMain, user, onSignOut }) {
+export default function Accounts({ accounts, onAddAccount, onSetMain, onEditBalance, user, onSignOut }) {
   const toast = useToast();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
@@ -96,7 +96,12 @@ export default function Accounts({ accounts, onAddAccount, onSetMain, user, onSi
 
       <div className="grid gap-3 sm:grid-cols-2">
         {accounts.map((acc) => (
-          <AccountCard key={acc.id} account={acc} onSetMain={onSetMain} />
+          <AccountCard
+            key={acc.id}
+            account={acc}
+            onSetMain={onSetMain}
+            onEditBalance={onEditBalance}
+          />
         ))}
       </div>
 

@@ -87,18 +87,18 @@ function CashCowApp({ user }) {
   const txEffect = (tx) => (tx.type === "income" ? tx.amount : -tx.amount);
 
   // Apply a delta to one account in BOTH local state and the database.
-  // Uses a functional setState so back-to-back calls never read a stale value.
+  // Compute the new balance up front (so the DB write always gets the right
+  // value), then update local state. Callers must touch each account at most
+  // once per action — updateTransaction does this by summing deltas per account.
   async function changeBalance(accountId, delta) {
     if (!delta) return;
-    let newBalance = null;
+    const acc = accounts.find((a) => a.id === accountId);
+    if (!acc) return;
+    const newBalance = acc.balance + delta;
     setAccounts((prev) =>
-      prev.map((a) => {
-        if (a.id !== accountId) return a;
-        newBalance = a.balance + delta;
-        return { ...a, balance: newBalance };
-      })
+      prev.map((a) => (a.id === accountId ? { ...a, balance: newBalance } : a))
     );
-    if (newBalance !== null) await api.setAccountBalance(accountId, newBalance);
+    await api.setAccountBalance(accountId, newBalance);
   }
 
   // Apply a map of { accountId: delta } — used so an edit touches each
@@ -171,6 +171,19 @@ function CashCowApp({ user }) {
       setAccounts((prev) => prev.map((a) => ({ ...a, isMain: a.id === accountId })));
     } catch (err) {
       toast.error("Couldn't set main account: " + err.message);
+    }
+  }
+
+  // Set an account's balance to an exact value (manual correction).
+  async function editAccountBalance(accountId, newBalance) {
+    try {
+      await api.setAccountBalance(accountId, newBalance);
+      setAccounts((prev) =>
+        prev.map((a) => (a.id === accountId ? { ...a, balance: newBalance } : a))
+      );
+      toast.success("Balance updated");
+    } catch (err) {
+      toast.error("Couldn't update balance: " + err.message);
     }
   }
 
@@ -296,6 +309,7 @@ function CashCowApp({ user }) {
             accounts={accounts}
             onAddAccount={addAccount}
             onSetMain={setMainAccount}
+            onEditBalance={editAccountBalance}
             user={user}
             onSignOut={signOut}
           />

@@ -2,8 +2,59 @@
 // Passwordless login: the user types their email, we email them a 6-digit
 // code, and they type it back. Sign-up and login are the same flow — if the
 // email is new, Supabase creates the account automatically.
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { supabase } from "../lib/supabase";
+
+const CODE_LENGTH = 8;
+
+// A row of single-digit boxes that fill as you type, auto-advance to the next
+// box, support backspace, and accept a pasted code.
+function CodeBoxes({ code, setCode }) {
+  const refs = useRef([]);
+
+  function setDigit(i, raw) {
+    const digit = raw.replace(/\D/g, "").slice(-1); // last typed digit only
+    const arr = code.split("");
+    arr[i] = digit || "";
+    const next = arr.join("").slice(0, CODE_LENGTH);
+    setCode(next);
+    if (digit && i < CODE_LENGTH - 1) refs.current[i + 1]?.focus();
+  }
+
+  function onKeyDown(i, e) {
+    // Backspace on an empty box jumps to the previous one.
+    if (e.key === "Backspace" && !code[i] && i > 0) {
+      refs.current[i - 1]?.focus();
+    }
+  }
+
+  function onPaste(e) {
+    const text = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, CODE_LENGTH);
+    if (!text) return;
+    e.preventDefault();
+    setCode(text);
+    refs.current[Math.min(text.length, CODE_LENGTH - 1)]?.focus();
+  }
+
+  return (
+    <div className="flex justify-between gap-1.5">
+      {Array.from({ length: CODE_LENGTH }).map((_, i) => (
+        <input
+          key={i}
+          ref={(el) => (refs.current[i] = el)}
+          type="text"
+          inputMode="numeric"
+          maxLength={1}
+          value={code[i] || ""}
+          onChange={(e) => setDigit(i, e.target.value)}
+          onKeyDown={(e) => onKeyDown(i, e)}
+          onPaste={onPaste}
+          className="h-12 w-full rounded-xl bg-neutral-800 text-center text-lg font-semibold text-white outline-none ring-1 ring-neutral-700 focus:ring-emerald-500"
+        />
+      ))}
+    </div>
+  );
+}
 
 export default function AuthScreen() {
   const [step, setStep] = useState("email"); // "email" | "code"
@@ -105,21 +156,10 @@ export default function AuthScreen() {
             className="space-y-3 rounded-2xl bg-neutral-900 p-5 ring-1 ring-neutral-800"
           >
             <div>
-              <label className="mb-1 block text-xs font-medium text-neutral-400">
+              <label className="mb-2 block text-xs font-medium text-neutral-400">
                 8-digit code
               </label>
-              <input
-                type="text"
-                inputMode="numeric"
-                required
-                value={code}
-                // Keep digits only.
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                placeholder="12345678"
-                maxLength={8}
-                className={`${field} text-center text-lg tracking-[0.3em]`}
-                autoFocus
-              />
+              <CodeBoxes code={code} setCode={setCode} />
             </div>
             {message && <Note message={message} />}
             <button
