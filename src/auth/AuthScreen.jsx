@@ -114,8 +114,8 @@ export default function AuthScreen() {
           <h1 className="mt-2 text-2xl font-bold text-white">CashCow</h1>
           <p className="text-sm text-neutral-500">
             {step === "email"
-              ? "Log in or sign up with your email"
-              : "Enter the code we emailed you"}
+              ? "Your money, made simple. Enter your email to start."
+              : "Almost there! Enter the code we emailed you."}
           </p>
         </div>
 
@@ -126,14 +126,14 @@ export default function AuthScreen() {
           >
             <div>
               <label className="mb-1 block text-xs font-medium text-neutral-400">
-                Email
+                Email address
               </label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@email.com"
+                placeholder="you@uni.edu"
                 className={field}
                 autoFocus
               />
@@ -147,7 +147,7 @@ export default function AuthScreen() {
               {busy ? "Sending…" : "Send me a code"}
             </button>
             <p className="text-center text-xs text-neutral-600">
-              No password needed — we'll email you an 8-digit code.
+              No password to remember — we'll email you a quick 8-digit code. 🐮
             </p>
           </form>
         ) : (
