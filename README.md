@@ -4,8 +4,7 @@
 
 CashCow isn't just an expense tracker. It answers the one question students
 actually care about: *"Can I safely spend money before my next rent, income, or
-bill?"* It combines a Notion-style structured finance model with a Toss-style
-clean, friendly dashboard.
+bill?"*
 
 ### 🔗 Live demo
 
