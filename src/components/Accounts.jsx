@@ -1,9 +1,9 @@
-// Accounts.jsx
-// Lists account cards and provides a small form to add a new account.
+// Accounts.jsx — Buttercream accounts screen.
 import { useState } from "react";
 import AccountCard from "./AccountCard";
 import { useToast } from "./Toast";
 import { totalAudBalance, formatMoney } from "../utils/calculations";
+import { colors as C, radius as R } from "../theme/tokens";
 
 export default function Accounts({ accounts, onAddAccount, onSetMain, onEditBalance, user, onSignOut }) {
   const toast = useToast();
@@ -20,99 +20,75 @@ export default function Accounts({ accounts, onAddAccount, onSetMain, onEditBala
       toast.error("Please give the account a name.");
       return;
     }
-    const account = {
-      id: `acc-${Date.now()}`,
-      name: name.trim(),
-      currency,
-      balance: parseFloat(balance) || 0,
-      isMain: false,
-    };
-    onAddAccount(account);
-    // Reset and close the form.
+    onAddAccount({ id: `acc-${Date.now()}`, name: name.trim(), currency, balance: parseFloat(balance) || 0, isMain: false });
     setName("");
     setBalance("");
     setCurrency("AUD");
     setShowForm(false);
   }
 
-  const field =
-    "w-full rounded-xl bg-neutral-800 px-3 py-2.5 text-sm text-white outline-none ring-1 ring-neutral-700 focus:ring-emerald-500";
+  const field = {
+    width: "100%",
+    borderRadius: R.md,
+    border: `1.5px solid ${C.border}`,
+    background: "#fff",
+    padding: "12px 14px",
+    fontSize: 14,
+    color: C.ink,
+    outline: "none",
+    fontFamily: "inherit",
+  };
+  const primaryBtn = {
+    border: "none",
+    cursor: "pointer",
+    background: C.green,
+    color: "#fff",
+    fontWeight: 700,
+    borderRadius: R.md,
+    fontFamily: "inherit",
+  };
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Accounts</h1>
-        <button
-          onClick={() => setShowForm((v) => !v)}
-          className="rounded-xl bg-emerald-500 px-3 py-2 text-sm font-semibold text-neutral-950 hover:bg-emerald-400"
-        >
+    <div style={{ animation: "ccUp .35s ease", display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.ink }}>Accounts</h1>
+        <button onClick={() => setShowForm((v) => !v)} style={{ ...primaryBtn, fontSize: 14, padding: "10px 16px" }}>
           {showForm ? "Close" : "+ Add"}
         </button>
       </div>
 
-      <p className="text-sm text-neutral-500">
+      <p style={{ margin: 0, fontSize: 14, color: C.sub }}>
         Total AUD across all accounts:{" "}
-        <span className="font-semibold text-white">{formatMoney(totalAud)}</span>
+        <strong style={{ color: C.ink }}>{formatMoney(totalAud)}</strong>
       </p>
 
       {showForm && (
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-3 rounded-2xl bg-neutral-900 p-4 ring-1 ring-neutral-800"
-        >
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Account name (e.g. Wise)"
-            className={field}
-          />
-          <div className="grid grid-cols-2 gap-2">
-            <select
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
-              className={field}
-            >
+        <form onSubmit={handleSubmit} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: R.xl, padding: 18, display: "flex", flexDirection: "column", gap: 12 }}>
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Account name (e.g. Wise)" style={field} />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <select value={currency} onChange={(e) => setCurrency(e.target.value)} style={field}>
               <option value="AUD">AUD</option>
               <option value="KRW">KRW</option>
             </select>
-            <input
-              type="number"
-              step="0.01"
-              value={balance}
-              onChange={(e) => setBalance(e.target.value)}
-              placeholder="Starting balance"
-              className={field}
-            />
+            <input type="number" step="0.01" value={balance} onChange={(e) => setBalance(e.target.value)} placeholder="Starting balance" style={field} />
           </div>
-          <button
-            type="submit"
-            className="w-full rounded-xl bg-emerald-500 py-2.5 text-sm font-semibold text-neutral-950 hover:bg-emerald-400"
-          >
-            Add account
-          </button>
+          <button type="submit" style={{ ...primaryBtn, fontSize: 14, padding: "11px" }}>Add account</button>
         </form>
       )}
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
         {accounts.map((acc) => (
-          <AccountCard
-            key={acc.id}
-            account={acc}
-            onSetMain={onSetMain}
-            onEditBalance={onEditBalance}
-          />
+          <AccountCard key={acc.id} account={acc} onSetMain={onSetMain} onEditBalance={onEditBalance} />
         ))}
       </div>
 
-      {/* Account / logout — also the logout path for mobile users, since the
-          bottom nav has no room for it. */}
-      <div className="mt-2 rounded-2xl bg-neutral-900 p-4 ring-1 ring-neutral-800">
-        <p className="text-xs text-neutral-500">Signed in as</p>
-        <p className="truncate text-sm text-white">{user?.email}</p>
+      {/* account / logout */}
+      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: R.xl, padding: 18 }}>
+        <div style={{ fontSize: 12, color: C.muted }}>Signed in as</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.email}</div>
         <button
           onClick={onSignOut}
-          className="mt-3 w-full rounded-xl bg-neutral-800 py-2.5 text-sm font-medium text-neutral-300 ring-1 ring-neutral-700 hover:text-white"
+          style={{ marginTop: 12, width: "100%", border: `1px solid ${C.border}`, background: "#fff", color: C.sub, borderRadius: R.md, padding: "10px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
         >
           ↪ Log out
         </button>

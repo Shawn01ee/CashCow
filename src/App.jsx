@@ -27,7 +27,17 @@ export default function App() {
 
 function CenterMessage({ text }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-950 text-neutral-400">
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "#FBF6EC",
+        color: "#A89D8C",
+        fontFamily: "'Pretendard', system-ui, sans-serif",
+      }}
+    >
       {text}
     </div>
   );
@@ -332,7 +342,7 @@ function CashCowApp({ user }) {
   return (
     <Layout page={page} onNavigate={navigate} user={user} onSignOut={signOut}>
       {loading ? (
-        <p className="text-sm text-neutral-500">Loading your money…</p>
+        <p style={{ fontSize: 14, color: "#A89D8C" }}>Loading your money…</p>
       ) : (
         renderPage()
       )}

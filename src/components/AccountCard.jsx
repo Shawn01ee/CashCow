@@ -1,8 +1,7 @@
-// AccountCard.jsx
-// One card per account: name, currency, balance, a "Main" badge, a button to
-// make it the main account, and an inline balance editor for manual fixes.
+// AccountCard.jsx — Buttercream account card with inline balance editor.
 import { useState } from "react";
 import { formatMoney } from "../utils/calculations";
+import { colors as C, radius as R } from "../theme/tokens";
 
 export default function AccountCard({ account, onSetMain, onEditBalance }) {
   const [editing, setEditing] = useState(false);
@@ -14,24 +13,49 @@ export default function AccountCard({ account, onSetMain, onEditBalance }) {
     setEditing(false);
   }
 
+  const input = {
+    width: "100%",
+    borderRadius: R.md,
+    border: `1.5px solid ${C.border}`,
+    background: "#fff",
+    padding: "10px 12px",
+    fontSize: 18,
+    fontWeight: 800,
+    color: C.ink,
+    outline: "none",
+    fontFamily: "inherit",
+  };
+  const smallBtn = (bg, color, border) => ({
+    flex: 1,
+    border: border || "none",
+    borderRadius: R.md,
+    padding: "8px",
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: "pointer",
+    fontFamily: "inherit",
+    background: bg,
+    color,
+  });
+
   return (
-    <div className="rounded-2xl bg-neutral-900 p-4 ring-1 ring-neutral-800">
-      <div className="flex items-start justify-between">
+    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: R.xl, padding: 18 }}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
         <div>
-          <p className="flex items-center gap-2 text-sm font-medium text-white">
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15, fontWeight: 700, color: C.ink }}>
             {account.name}
             {account.isMain && (
-              <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+              <span style={{ background: C.greenSoft, color: C.greenDark, padding: "2px 8px", borderRadius: R.full, fontSize: 10, fontWeight: 800 }}>
                 MAIN
               </span>
             )}
-          </p>
-          <p className="text-xs text-neutral-500">{account.currency} account</p>
+          </div>
+          <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{account.currency} account</div>
         </div>
         {!account.isMain && (
           <button
             onClick={() => onSetMain(account.id)}
-            className="rounded-lg bg-neutral-800 px-2.5 py-1 text-xs text-neutral-300 ring-1 ring-neutral-700 hover:text-white"
+            style={{ border: `1px solid ${C.border}`, background: "#fff", color: C.sub, borderRadius: R.md, padding: "5px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
           >
             Set as main
           </button>
@@ -39,45 +63,21 @@ export default function AccountCard({ account, onSetMain, onEditBalance }) {
       </div>
 
       {editing ? (
-        <div className="mt-3 space-y-2">
-          <input
-            type="number"
-            step="0.01"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            autoFocus
-            className="w-full rounded-xl bg-neutral-800 px-3 py-2 text-lg font-semibold text-white outline-none ring-1 ring-neutral-700 focus:ring-emerald-500"
-          />
-          <div className="flex gap-2">
-            <button
-              onClick={() => {
-                setValue(String(account.balance));
-                setEditing(false);
-              }}
-              className="flex-1 rounded-lg bg-neutral-800 py-1.5 text-xs text-neutral-300 ring-1 ring-neutral-700 hover:text-white"
-            >
+        <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+          <input type="number" step="0.01" value={value} onChange={(e) => setValue(e.target.value)} autoFocus style={input} />
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={() => { setValue(String(account.balance)); setEditing(false); }} style={smallBtn("#fff", C.sub, `1px solid ${C.border}`)}>
               Cancel
             </button>
-            <button
-              onClick={save}
-              className="flex-1 rounded-lg bg-emerald-500 py-1.5 text-xs font-semibold text-neutral-950 hover:bg-emerald-400"
-            >
-              Save balance
-            </button>
+            <button onClick={save} style={smallBtn(C.green, "#fff")}>Save balance</button>
           </div>
         </div>
       ) : (
-        <div className="mt-3 flex items-end justify-between">
-          <p className="text-2xl font-semibold text-white">
+        <div style={{ marginTop: 12, display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
+          <div style={{ fontSize: 24, fontWeight: 800, color: C.ink, letterSpacing: "-.02em" }}>
             {formatMoney(account.balance, account.currency)}
-          </p>
-          <button
-            onClick={() => {
-              setValue(String(account.balance));
-              setEditing(true);
-            }}
-            className="text-xs text-neutral-400 hover:text-white"
-          >
+          </div>
+          <button onClick={() => { setValue(String(account.balance)); setEditing(true); }} style={{ border: "none", background: "transparent", color: C.muted, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
             ✏️ Edit
           </button>
         </div>

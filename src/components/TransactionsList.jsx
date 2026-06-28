@@ -1,154 +1,97 @@
-// TransactionsList.jsx
-// Shows all transactions grouped by date, with filter chips on top.
+// TransactionsList.jsx — Buttercream activity list, grouped by date.
 import { useState } from "react";
 import { formatMoney } from "../utils/calculations";
+import { colors as C, radius as R } from "../theme/tokens";
 
 const FILTERS = ["All", "Income", "Expense", "Fixed", "Variable"];
 
-export default function TransactionsList({
-  transactions,
-  accounts,
-  categories,
-  onEdit,
-  onDelete,
-}) {
+export default function TransactionsList({ transactions, accounts, categories, onEdit, onDelete }) {
   const [filter, setFilter] = useState("All");
-  const [pendingDelete, setPendingDelete] = useState(null); // tx awaiting confirm
+  const [pendingDelete, setPendingDelete] = useState(null);
+
+  const iconFor = (name) => categories.find((c) => c.name === name)?.icon || "💵";
+  const accountName = (id) => accounts.find((a) => a.id === id)?.name || "Unknown";
 
   function confirmDelete() {
     if (pendingDelete) onDelete(pendingDelete.id);
     setPendingDelete(null);
   }
 
-  // Helper lookups so each row can show icon + account name.
-  const iconFor = (name) => categories.find((c) => c.name === name)?.icon || "💵";
-  const accountName = (id) => accounts.find((a) => a.id === id)?.name || "Unknown";
-
-  // Apply the active filter.
   const filtered = transactions.filter((t) => {
     if (filter === "Income") return t.type === "income";
     if (filter === "Expense") return t.type === "expense";
     if (filter === "Fixed") return t.isFixed;
     if (filter === "Variable") return !t.isFixed;
-    return true; // "All"
+    return true;
   });
 
-  // Group the filtered list by date into an object: { "2026-06-26": [tx, tx] }
   const groups = {};
-  for (const tx of filtered) {
-    (groups[tx.date] ||= []).push(tx);
-  }
-  // Sort dates newest-first.
+  for (const tx of filtered) (groups[tx.date] ||= []).push(tx);
   const sortedDates = Object.keys(groups).sort((a, b) => new Date(b) - new Date(a));
 
-  return (
-    <div className="space-y-5">
-      <h1 className="text-2xl font-bold text-white">Activity</h1>
+  const card = { background: C.card, border: `1px solid ${C.border}`, borderRadius: R.xl };
+  const iconBtn = { border: "none", background: "transparent", cursor: "pointer", fontSize: 14, padding: "4px 6px", borderRadius: 8, fontFamily: "inherit" };
 
-      {/* Filter chips */}
-      <div className="flex flex-wrap gap-2">
-        {FILTERS.map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`rounded-full px-3 py-1.5 text-sm font-medium ring-1 transition-colors ${
-              filter === f
-                ? "bg-emerald-500/15 text-emerald-400 ring-emerald-500/40"
-                : "bg-neutral-800 text-neutral-400 ring-neutral-700 hover:text-white"
-            }`}
-          >
-            {f}
-          </button>
-        ))}
+  return (
+    <div style={{ animation: "ccUp .35s ease", display: "flex", flexDirection: "column", gap: 16 }}>
+      <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.ink }}>Activity</h1>
+
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        {FILTERS.map((f) => {
+          const active = filter === f;
+          return (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              style={{ padding: "8px 16px", borderRadius: R.full, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", border: `1px solid ${active ? "transparent" : C.border}`, background: active ? C.ink : "#fff", color: active ? "#fff" : C.sub }}
+            >
+              {f}
+            </button>
+          );
+        })}
       </div>
 
       {sortedDates.length === 0 ? (
-        <p className="text-sm text-neutral-500">No transactions match this filter.</p>
+        <p style={{ fontSize: 14, color: C.muted, margin: 0 }}>No transactions match this filter.</p>
       ) : (
         sortedDates.map((date) => (
           <section key={date}>
-            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">
-              {date}
-            </h2>
-            <ul className="space-y-2">
+            <h2 style={{ margin: "0 2px 8px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".04em", color: C.muted }}>{date}</h2>
+            <div style={{ ...card, padding: "4px 16px" }}>
               {groups[date].map((tx) => (
-                <li
-                  key={tx.id}
-                  className="flex items-center gap-3 rounded-2xl bg-neutral-900 p-3 ring-1 ring-neutral-800"
-                >
-                  <span className="text-2xl">{iconFor(tx.category)}</span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-white">
-                      {tx.memo || tx.category}
-                    </p>
-                    <p className="truncate text-xs text-neutral-500">
-                      {tx.category} · {accountName(tx.accountId)} ·{" "}
-                      {tx.isFixed ? "Fixed" : "Variable"}
-                    </p>
+                <div key={tx.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: `1px solid ${C.divider}` }}>
+                  <div style={{ width: 44, height: 44, borderRadius: R.md, background: C.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19 }}>{iconFor(tx.category)}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tx.memo || tx.category}</div>
+                    <div style={{ fontSize: 12, color: C.muted }}>{tx.category} · {accountName(tx.accountId)} · {tx.isFixed ? "Fixed" : "Variable"}</div>
                   </div>
-                  <span
-                    className={`shrink-0 text-sm font-semibold ${
-                      tx.type === "income" ? "text-emerald-400" : "text-red-400"
-                    }`}
-                  >
-                    {tx.type === "income" ? "+" : "-"}
-                    {formatMoney(tx.amount, tx.currency)}
-                  </span>
-
-                  {/* Edit + delete actions */}
-                  <div className="flex shrink-0 gap-1">
-                    <button
-                      onClick={() => onEdit(tx)}
-                      aria-label="Edit"
-                      className="rounded-lg px-2 py-1 text-sm text-neutral-400 hover:bg-neutral-800 hover:text-white"
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      onClick={() => setPendingDelete(tx)}
-                      aria-label="Delete"
-                      className="rounded-lg px-2 py-1 text-sm text-neutral-400 hover:bg-neutral-800 hover:text-red-400"
-                    >
-                      🗑️
-                    </button>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: tx.type === "income" ? C.greenDark : C.ink, whiteSpace: "nowrap" }}>
+                    {tx.type === "income" ? "+" : "−"}{formatMoney(tx.amount, tx.currency)}
                   </div>
-                </li>
+                  <div style={{ display: "flex", gap: 2 }}>
+                    <button onClick={() => onEdit(tx)} aria-label="Edit" style={iconBtn}>✏️</button>
+                    <button onClick={() => setPendingDelete(tx)} aria-label="Delete" style={iconBtn}>🗑️</button>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           </section>
         ))
       )}
 
-      {/* In-app delete confirmation (replaces window.confirm) */}
       {pendingDelete && (
         <div
-          className="fixed inset-0 z-40 flex items-end justify-center bg-black/60 p-4 sm:items-center"
           onClick={() => setPendingDelete(null)}
+          style={{ position: "fixed", inset: 0, zIndex: 40, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(42,37,32,.45)", padding: 16 }}
         >
-          <div
-            className="w-full max-w-sm rounded-2xl bg-neutral-900 p-5 ring-1 ring-neutral-700"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <p className="text-sm font-semibold text-white">Delete this transaction?</p>
-            <p className="mt-1 text-xs text-neutral-400">
-              “{pendingDelete.memo || pendingDelete.category}” ·{" "}
-              {pendingDelete.type === "income" ? "+" : "-"}
-              {formatMoney(pendingDelete.amount, pendingDelete.currency)}. The account
-              balance will be adjusted back.
-            </p>
-            <div className="mt-4 flex gap-2">
-              <button
-                onClick={() => setPendingDelete(null)}
-                className="flex-1 rounded-xl bg-neutral-800 py-2.5 text-sm font-medium text-neutral-300 ring-1 ring-neutral-700 hover:text-white"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="flex-1 rounded-xl bg-red-500 py-2.5 text-sm font-semibold text-white hover:bg-red-400"
-              >
-                Delete
-              </button>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 360, background: C.card, borderRadius: R.xl, padding: 20, boxShadow: "0 20px 60px rgba(70,55,25,.25)" }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: C.ink }}>Delete this transaction?</div>
+            <div style={{ fontSize: 12, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
+              "{pendingDelete.memo || pendingDelete.category}" · {pendingDelete.type === "income" ? "+" : "−"}{formatMoney(pendingDelete.amount, pendingDelete.currency)}. The account balance will be adjusted back.
+            </div>
+            <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+              <button onClick={() => setPendingDelete(null)} style={{ flex: 1, border: `1px solid ${C.border}`, background: "#fff", color: C.sub, borderRadius: R.md, padding: "10px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+              <button onClick={confirmDelete} style={{ flex: 1, border: "none", background: C.coral, color: "#fff", borderRadius: R.md, padding: "10px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Delete</button>
             </div>
           </div>
         </div>

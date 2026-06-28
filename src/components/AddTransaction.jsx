@@ -1,58 +1,43 @@
-// AddTransaction.jsx
-// A controlled form for logging income or expenses. "Controlled" means every
-// input's value comes from React state, so we always know the current form
-// data and can build a clean transaction object on submit.
+// AddTransaction.jsx — Buttercream add/edit form with quick-add chips.
 import { useState } from "react";
 import { quickAdds } from "../data/sampleData";
 import { useToast } from "./Toast";
+import { colors as C, radius as R, shadow as S } from "../theme/tokens";
 
-// Today's date as YYYY-MM-DD, used as the default date.
 function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export default function AddTransaction({
-  categories,
-  accounts,
-  editingTx, // a transaction object when editing, otherwise null/undefined
-  onAdd,
-  onUpdate,
-  onCancel,
-  onNavigate,
-}) {
+export default function AddTransaction({ categories, accounts, editingTx, onAdd, onUpdate, onCancel, onNavigate }) {
   const toast = useToast();
   const isEditing = Boolean(editingTx);
   const [submitting, setSubmitting] = useState(false);
 
-  // Each field is a piece of state. When editing, we seed it from editingTx.
-  // (App passes a unique `key`, so this component remounts and re-seeds
-  //  whenever the edit target changes.)
   const [type, setType] = useState(editingTx?.type || "expense");
   const [amount, setAmount] = useState(editingTx ? String(editingTx.amount) : "");
   const [currency, setCurrency] = useState(editingTx?.currency || "AUD");
   const [category, setCategory] = useState(editingTx?.category || "");
-  const [accountId, setAccountId] = useState(
-    editingTx?.accountId || accounts[0]?.id || ""
-  );
+  const [accountId, setAccountId] = useState(editingTx?.accountId || accounts[0]?.id || "");
   const [memo, setMemo] = useState(editingTx?.memo || "");
   const [date, setDate] = useState(editingTx?.date || today());
   const [isFixed, setIsFixed] = useState(editingTx?.isFixed || false);
 
-  // Can't add a transaction without an account to attach it to.
+  const field = {
+    width: "100%", borderRadius: R.md, border: `1.5px solid ${C.border}`,
+    background: "#fff", padding: "12px 14px", fontSize: 14, color: C.ink,
+    outline: "none", fontFamily: "inherit",
+  };
+  const labelCls = { display: "block", marginBottom: 6, fontSize: 13, fontWeight: 700, color: C.sub };
+
   if (accounts.length === 0) {
     return (
-      <div className="space-y-5">
-        <h1 className="text-2xl font-bold text-white">Add transaction</h1>
-        <div className="rounded-2xl bg-neutral-900 p-6 text-center ring-1 ring-neutral-800">
-          <p className="text-3xl">🏦</p>
-          <p className="mt-2 text-sm text-neutral-300">Add an account first</p>
-          <p className="mt-1 text-xs text-neutral-500">
-            Transactions go in and out of an account, so let's create one.
-          </p>
-          <button
-            onClick={() => onNavigate("accounts")}
-            className="mt-4 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-neutral-950 hover:bg-emerald-400"
-          >
+      <div style={{ animation: "ccUp .35s ease", display: "flex", flexDirection: "column", gap: 16 }}>
+        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.ink }}>Add transaction</h1>
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: R.xl, padding: 24, textAlign: "center" }}>
+          <div style={{ fontSize: 30 }}>🏦</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, marginTop: 8 }}>Add an account first</div>
+          <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>Transactions go in and out of an account, so let's create one.</div>
+          <button onClick={() => onNavigate("accounts")} style={{ marginTop: 16, border: "none", background: C.green, color: "#fff", borderRadius: R.md, padding: "10px 18px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
             Go to Accounts
           </button>
         </div>
@@ -60,10 +45,8 @@ export default function AddTransaction({
     );
   }
 
-  // Only show categories that match the selected type (income vs expense).
   const visibleCategories = categories.filter((c) => c.type === type);
 
-  // When the user taps a quick-add chip, pre-fill several fields at once.
   function applyQuickAdd(q) {
     setType(q.type);
     setCategory(q.category);
@@ -74,31 +57,14 @@ export default function AddTransaction({
   async function handleSubmit(e) {
     e.preventDefault();
     const numericAmount = parseFloat(amount);
-    if (!numericAmount || numericAmount <= 0) {
-      toast.error("Please enter an amount greater than 0.");
-      return;
-    }
-    if (!category) {
-      toast.error("Please pick a category.");
-      return;
-    }
+    if (!numericAmount || numericAmount <= 0) { toast.error("Please enter an amount greater than 0."); return; }
+    if (!category) { toast.error("Please pick a category."); return; }
 
-    // Build the transaction object that matches our data model.
     const tx = {
-      // Keep the same id when editing; create a new one when adding.
       id: isEditing ? editingTx.id : `tx-${Date.now()}`,
-      type,
-      amount: numericAmount,
-      currency,
-      category,
-      accountId,
-      memo: memo.trim(),
-      date,
-      isFixed,
+      type, amount: numericAmount, currency, category, accountId,
+      memo: memo.trim(), date, isFixed,
     };
-
-    // App handles saving + balance update + navigation for both cases.
-    // We await so the button can show a "saving…" state.
     setSubmitting(true);
     try {
       if (isEditing) await onUpdate(tx);
@@ -108,177 +74,96 @@ export default function AddTransaction({
     }
   }
 
-  // Shared styling for inputs so the form stays consistent.
-  const field =
-    "w-full rounded-xl bg-neutral-800 px-3 py-2.5 text-sm text-white outline-none ring-1 ring-neutral-700 focus:ring-emerald-500";
-  const labelCls = "mb-1 block text-xs font-medium text-neutral-400";
-
   return (
-    <div className="space-y-5">
-      <h1 className="text-2xl font-bold text-white">
+    <div style={{ animation: "ccUp .35s ease", display: "flex", flexDirection: "column", gap: 18 }}>
+      <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.ink }}>
         {isEditing ? "Edit transaction" : "Add transaction"}
       </h1>
 
-      {/* Quick adds (hidden while editing — they're for fast new entries) */}
-      <div className={isEditing ? "hidden" : ""}>
-        <p className={labelCls}>Quick add</p>
-        <div className="flex flex-wrap gap-2">
-          {quickAdds.map((q) => (
-            <button
-              key={q.label}
-              type="button"
-              onClick={() => applyQuickAdd(q)}
-              className="flex items-center gap-1.5 rounded-full bg-neutral-800 px-3 py-1.5 text-sm text-neutral-200 ring-1 ring-neutral-700 hover:bg-neutral-700"
-            >
-              <span>{q.icon}</span> {q.label}
-            </button>
-          ))}
+      {!isEditing && (
+        <div>
+          <p style={labelCls}>Quick add</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {quickAdds.map((q) => (
+              <button key={q.label} type="button" onClick={() => applyQuickAdd(q)} style={{ display: "flex", alignItems: "center", gap: 6, border: `1px solid ${C.border}`, background: "#fff", borderRadius: R.full, padding: "8px 14px", fontSize: 13, color: C.ink, cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}>
+                <span>{q.icon}</span> {q.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Income / Expense toggle */}
-        <div className="grid grid-cols-2 gap-2">
-          {["expense", "income"].map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => {
-                setType(t);
-                setCategory(""); // reset category since the list changes
-              }}
-              className={`rounded-xl py-2.5 text-sm font-medium capitalize ring-1 transition-colors ${
-                type === t
-                  ? t === "income"
-                    ? "bg-emerald-500/15 text-emerald-400 ring-emerald-500/40"
-                    : "bg-red-500/15 text-red-400 ring-red-500/40"
-                  : "bg-neutral-800 text-neutral-400 ring-neutral-700"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {/* type toggle */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          {["expense", "income"].map((t) => {
+            const active = type === t;
+            const activeBg = t === "income" ? C.greenSoft : "#FFE9E2";
+            const activeColor = t === "income" ? C.greenDark : C.coral;
+            return (
+              <button key={t} type="button" onClick={() => { setType(t); setCategory(""); }} style={{ textTransform: "capitalize", borderRadius: R.md, padding: "11px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", border: `1px solid ${active ? activeColor + "55" : C.border}`, background: active ? activeBg : "#fff", color: active ? activeColor : C.sub }}>
+                {t}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Amount + currency */}
-        <div className="grid grid-cols-3 gap-2">
-          <div className="col-span-2">
-            <label className={labelCls}>Amount</label>
-            <input
-              type="number"
-              step="0.01"
-              inputMode="decimal"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
-              className={field}
-            />
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 8 }}>
+          <div>
+            <label style={labelCls}>Amount</label>
+            <input type="number" step="0.01" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" style={field} />
           </div>
           <div>
-            <label className={labelCls}>Currency</label>
-            <select
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
-              className={field}
-            >
+            <label style={labelCls}>Currency</label>
+            <select value={currency} onChange={(e) => setCurrency(e.target.value)} style={field}>
               <option value="AUD">AUD</option>
               <option value="KRW">KRW</option>
             </select>
           </div>
         </div>
 
-        {/* Category */}
         <div>
-          <label className={labelCls}>Category</label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className={field}
-          >
+          <label style={labelCls}>Category</label>
+          <select value={category} onChange={(e) => setCategory(e.target.value)} style={field}>
             <option value="">Select a category…</option>
-            {visibleCategories.map((c) => (
-              <option key={c.id} value={c.name}>
-                {c.icon} {c.name}
-              </option>
-            ))}
+            {visibleCategories.map((c) => (<option key={c.id} value={c.name}>{c.icon} {c.name}</option>))}
           </select>
         </div>
 
-        {/* Account */}
         <div>
-          <label className={labelCls}>Account</label>
-          <select
-            value={accountId}
-            onChange={(e) => setAccountId(e.target.value)}
-            className={field}
-          >
-            {accounts.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name} ({a.currency})
-              </option>
-            ))}
+          <label style={labelCls}>Account</label>
+          <select value={accountId} onChange={(e) => setAccountId(e.target.value)} style={field}>
+            {accounts.map((a) => (<option key={a.id} value={a.id}>{a.name} ({a.currency})</option>))}
           </select>
         </div>
 
-        {/* Memo + date */}
         <div>
-          <label className={labelCls}>Memo</label>
-          <input
-            type="text"
-            value={memo}
-            onChange={(e) => setMemo(e.target.value)}
-            placeholder="e.g. Iced latte"
-            className={field}
-          />
+          <label style={labelCls}>Memo</label>
+          <input type="text" value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="e.g. Iced latte" style={field} />
         </div>
         <div>
-          <label className={labelCls}>Date</label>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className={field}
-          />
+          <label style={labelCls}>Date</label>
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={field} />
         </div>
 
-        {/* Fixed vs variable */}
-        <div className="flex items-center justify-between rounded-xl bg-neutral-800 px-3 py-2.5 ring-1 ring-neutral-700">
+        {/* fixed toggle */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: C.card, border: `1px solid ${C.border}`, borderRadius: R.md, padding: "12px 14px" }}>
           <div>
-            <p className="text-sm text-white">Fixed payment?</p>
-            <p className="text-xs text-neutral-500">
-              Rent, phone, subscriptions — things you can't easily skip.
-            </p>
+            <div style={{ fontSize: 14, color: C.ink, fontWeight: 700 }}>Fixed payment?</div>
+            <div style={{ fontSize: 12, color: C.muted }}>Rent, phone, subscriptions — things you can't easily skip.</div>
           </div>
-          <button
-            type="button"
-            onClick={() => setIsFixed((v) => !v)}
-            className={`relative h-6 w-11 rounded-full transition-colors ${
-              isFixed ? "bg-emerald-500" : "bg-neutral-600"
-            }`}
-          >
-            <span
-              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
-                isFixed ? "translate-x-5" : "translate-x-0.5"
-              }`}
-            />
+          <button type="button" onClick={() => setIsFixed((v) => !v)} style={{ position: "relative", height: 26, width: 46, borderRadius: 999, border: "none", cursor: "pointer", background: isFixed ? C.green : "#D9CFBE", flexShrink: 0 }}>
+            <span style={{ position: "absolute", top: 3, left: 3, height: 20, width: 20, borderRadius: "50%", background: "#fff", transition: "transform .15s", transform: isFixed ? "translateX(20px)" : "translateX(0)" }} />
           </button>
         </div>
 
-        <div className="flex gap-2">
+        <div style={{ display: "flex", gap: 8 }}>
           {isEditing && (
-            <button
-              type="button"
-              onClick={onCancel}
-              className="flex-1 rounded-xl bg-neutral-800 py-3 text-sm font-semibold text-neutral-300 ring-1 ring-neutral-700 hover:text-white"
-            >
+            <button type="button" onClick={onCancel} style={{ flex: 1, border: `1px solid ${C.border}`, background: "#fff", color: C.sub, borderRadius: R.md, padding: "14px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
               Cancel
             </button>
           )}
-          <button
-            type="submit"
-            disabled={submitting}
-            className="flex-1 rounded-xl bg-emerald-500 py-3 text-sm font-semibold text-neutral-950 hover:bg-emerald-400 disabled:opacity-60"
-          >
+          <button type="submit" disabled={submitting} style={{ flex: 1, border: "none", background: C.green, color: "#fff", borderRadius: R.md, padding: "14px", fontSize: 15, fontWeight: 700, cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit", boxShadow: submitting ? "none" : S.card, opacity: submitting ? 0.7 : 1 }}>
             {submitting ? "Saving…" : isEditing ? "Save changes" : "Save transaction"}
           </button>
         </div>
