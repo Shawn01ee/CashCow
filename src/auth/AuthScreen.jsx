@@ -24,7 +24,7 @@ export default function AuthScreen() {
       });
       if (error) throw error;
       setStep("code");
-      setMessage({ type: "ok", text: `We sent a code to ${email}.` });
+      setMessage({ type: "ok", text: `We sent an 8-digit code to ${email}.` });
     } catch (err) {
       setMessage({ type: "err", text: err.message });
     } finally {
@@ -96,7 +96,7 @@ export default function AuthScreen() {
               {busy ? "Sending…" : "Send me a code"}
             </button>
             <p className="text-center text-xs text-neutral-600">
-              No password needed — we'll email you a login code.
+              No password needed — we'll email you an 8-digit code.
             </p>
           </form>
         ) : (
@@ -106,16 +106,16 @@ export default function AuthScreen() {
           >
             <div>
               <label className="mb-1 block text-xs font-medium text-neutral-400">
-                Login code
+                8-digit code
               </label>
               <input
                 type="text"
                 inputMode="numeric"
                 required
                 value={code}
-                // Keep only digits; length varies by project (6 or 8).
+                // Keep digits only.
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                placeholder="Enter the code from your email"
+                placeholder="12345678"
                 maxLength={8}
                 className={`${field} text-center text-lg tracking-[0.3em]`}
                 autoFocus
