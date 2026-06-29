@@ -1,5 +1,6 @@
 // NavBar.jsx — Buttercream sidebar (desktop) + bottom nav (mobile).
 import { colors as C, radius as R, font } from "../theme/tokens";
+import { useLang } from "../i18n";
 
 const NAV_ITEMS = [
   { key: "home", label: "Home", icon: "🏠" },
@@ -16,6 +17,7 @@ const DESKTOP_ITEMS = [
 ];
 
 export default function NavBar({ page, onNavigate, user, onSignOut }) {
+  const { t } = useLang();
   return (
     <>
       {/* Desktop sidebar */}
@@ -53,14 +55,14 @@ export default function NavBar({ page, onNavigate, user, onSignOut }) {
                 }}
               >
                 <span style={{ fontSize: 17 }}>{item.icon}</span>
-                {item.label}
+                {t(item.label)}
               </button>
             );
           })}
         </div>
         {/* user + logout */}
         <div style={{ marginTop: "auto", background: C.bg, borderRadius: R.lg, padding: 14 }}>
-          <div style={{ fontSize: 12, color: C.muted }}>Signed in as</div>
+          <div style={{ fontSize: 12, color: C.muted }}>{t("Signed in as")}</div>
           <div style={{ fontSize: 13, fontWeight: 700, color: C.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {user?.email}
           </div>
@@ -72,7 +74,7 @@ export default function NavBar({ page, onNavigate, user, onSignOut }) {
               padding: "8px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
             }}
           >
-            ↪ Log out
+            ↪ {t("Log out")}
           </button>
         </div>
       </aside>
@@ -94,7 +96,7 @@ export default function NavBar({ page, onNavigate, user, onSignOut }) {
               }}
             >
               <span style={{ fontSize: 20 }}>{item.icon}</span>
-              {item.label}
+              {t(item.label)}
             </button>
           );
         })}

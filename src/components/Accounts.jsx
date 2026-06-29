@@ -2,11 +2,13 @@
 import { useState } from "react";
 import AccountCard from "./AccountCard";
 import { useToast } from "./Toast";
+import { useLang } from "../i18n";
 import { totalAudBalance, formatMoney } from "../utils/calculations";
 import { colors as C, radius as R } from "../theme/tokens";
 
 export default function Accounts({ accounts, onAddAccount, onSetMain, onEditAccount, onDeleteAccount, user, onSignOut }) {
   const toast = useToast();
+  const { t, lang, setLang } = useLang();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
   const [currency, setCurrency] = useState("AUD");
@@ -82,15 +84,34 @@ export default function Accounts({ accounts, onAddAccount, onSetMain, onEditAcco
         ))}
       </div>
 
-      {/* account / logout */}
+      {/* Language */}
       <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: R.xl, padding: 18 }}>
-        <div style={{ fontSize: 12, color: C.muted }}>Signed in as</div>
+        <div style={{ fontSize: 12, color: C.muted, marginBottom: 8 }}>{t("Language")}</div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {[["en", "English"], ["ko", "한국어"]].map(([code, label]) => {
+            const active = lang === code;
+            return (
+              <button
+                key={code}
+                onClick={() => setLang(code)}
+                style={{ flex: 1, border: `1px solid ${active ? C.green : C.border}`, background: active ? C.greenSoft : "#fff", color: active ? C.greenDark : C.sub, borderRadius: R.md, padding: "10px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Account / logout */}
+      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: R.xl, padding: 18 }}>
+        <div style={{ fontSize: 12, color: C.muted }}>{t("Signed in as")}</div>
         <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.email}</div>
         <button
           onClick={onSignOut}
           style={{ marginTop: 12, width: "100%", border: `1px solid ${C.border}`, background: "#fff", color: C.sub, borderRadius: R.md, padding: "10px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
         >
-          ↪ Log out
+          ↪ {t("Log out")}
         </button>
       </div>
     </div>

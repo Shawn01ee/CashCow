@@ -1,0 +1,66 @@
+// i18n.jsx — tiny language switcher (English / Korean).
+// Usage: const { t, lang, setLang } = useLang();  then  t("Home").
+// Keys are the English text, so untranslated strings fall back to English.
+import { createContext, useContext, useState } from "react";
+
+const ko = {
+  // Navigation
+  Home: "홈",
+  Add: "추가",
+  Activity: "내역",
+  Insights: "분석",
+  Accounts: "계좌",
+  "Fixed payments": "고정지출",
+  "Log out": "로그아웃",
+  "Signed in as": "로그인 계정",
+  "v0.1 · your money, made simple": "v0.1 · 쉬운 돈 관리",
+
+  // Auth / login
+  Welcome: "환영해요",
+  "Log in or sign up with your email": "이메일로 로그인하거나 가입하세요",
+  Email: "이메일",
+  "Send me a code": "인증코드 받기",
+  "Sending…": "보내는 중…",
+  "No password to remember. We'll email you a code. 🐮":
+    "비밀번호 없이 — 이메일로 코드를 보내드려요. 🐮",
+  "Almost there!": "거의 다 왔어요!",
+  "Enter the 8-digit code we emailed you": "이메일로 받은 8자리 코드를 입력하세요",
+  "8-digit code": "8자리 코드",
+  "Log in": "로그인",
+  "Verifying…": "확인 중…",
+  "← Change email": "← 이메일 변경",
+  "Resend code": "코드 다시 보내기",
+  "Money habits,": "돈 관리,",
+  "made simple": "쉽고 간단하게",
+  Daily: "매일",
+  "safe-to-spend": "안전 지출",
+  "No password": "비밀번호 없이",
+  "just a code": "코드만 입력",
+
+  // Language toggle
+  Language: "언어",
+};
+
+const DICTS = { en: {}, ko };
+
+const LangContext = createContext({ lang: "en", setLang: () => {}, t: (s) => s });
+
+export function LanguageProvider({ children }) {
+  const [lang, setLangState] = useState(() => localStorage.getItem("cashcow.lang") || "en");
+
+  function setLang(l) {
+    localStorage.setItem("cashcow.lang", l);
+    setLangState(l);
+  }
+
+  // Translate: look up the English key in the active dictionary, else fall back.
+  const t = (key) => DICTS[lang]?.[key] ?? key;
+
+  return (
+    <LangContext.Provider value={{ lang, setLang, t }}>{children}</LangContext.Provider>
+  );
+}
+
+export function useLang() {
+  return useContext(LangContext);
+}
