@@ -60,7 +60,23 @@ export default function Insights({ transactions }) {
       {/* How spending felt (from ratings) */}
       {ratedCount > 0 && (
         <div style={card}>
-          <h2 style={{ margin: "0 0 14px", fontSize: 15, fontWeight: 800, color: C.ink }}>How your spending felt</h2>
+          <h2 style={{ margin: "0 0 10px", fontSize: 15, fontWeight: 800, color: C.ink }}>How your spending felt</h2>
+          {(() => {
+            const ratedTotal = rating.good.total + rating.warn.total + rating.bad.total;
+            const pct = (v) => (ratedTotal > 0 ? Math.round((v / ratedTotal) * 100) : 0);
+            return (
+              <>
+                <div style={{ display: "flex", height: 12, borderRadius: 999, overflow: "hidden", marginBottom: 6 }}>
+                  <div style={{ width: `${pct(rating.good.total)}%`, background: "#34C77B" }} />
+                  <div style={{ width: `${pct(rating.warn.total)}%`, background: "#FFCB45" }} />
+                  <div style={{ width: `${pct(rating.bad.total)}%`, background: "#FF7A59" }} />
+                </div>
+                <p style={{ margin: "0 0 14px", fontSize: 13, color: C.sub }}>
+                  <strong style={{ color: "#1A9D63" }}>{pct(rating.good.total)}%</strong> of rated spending felt worth it.
+                </p>
+              </>
+            );
+          })()}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
             {RATING_META.map((r) => (
               <div key={r.key} style={{ textAlign: "center", background: C.bg, borderRadius: R.md, padding: "12px 6px" }}>

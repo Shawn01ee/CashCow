@@ -177,6 +177,19 @@ function CashCowApp({ user }) {
     }
   }
 
+  // Quickly set/clear a purchase rating from the Activity list (no balance change).
+  async function rateTransaction(id, ratingKey) {
+    const tx = transactions.find((t) => t.id === id);
+    if (!tx) return;
+    const updated = { ...tx, rating: tx.rating === ratingKey ? null : ratingKey };
+    setTransactions((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    try {
+      await api.updateTransaction(updated);
+    } catch (err) {
+      toast.error("Couldn't save rating: " + err.message);
+    }
+  }
+
   async function deleteTransaction(id) {
     try {
       const tx = transactions.find((t) => t.id === id);
@@ -331,6 +344,7 @@ function CashCowApp({ user }) {
             categories={categories}
             onEdit={startEdit}
             onDelete={deleteTransaction}
+            onRate={rateTransaction}
           />
         );
       case "insights":
