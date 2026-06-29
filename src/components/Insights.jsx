@@ -1,4 +1,5 @@
-// Insights.jsx — Buttercream analytics: donut + ranked bars + coach text.
+// Insights.jsx — Buttercream analytics: spending trend + donut + ranked bars.
+import { useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import StatCard from "./StatCard";
 import {
@@ -6,18 +7,24 @@ import {
   fixedVsVariable,
   categoryBreakdown,
   biggestVariableCategory,
+  expenseTrend,
   formatMoney,
 } from "../utils/calculations";
 import { colors as C, radius as R } from "../theme/tokens";
 
 const COLORS = C.cat;
+const PERIODS = [["week", "Week"], ["month", "Month"], ["year", "Year"]];
 
 export default function Insights({ transactions }) {
+  const [period, setPeriod] = useState("month");
+
   const total = monthlyExpense(transactions);
   const { fixed, variable } = fixedVsVariable(transactions);
   const breakdown = categoryBreakdown(transactions);
   const biggest = breakdown[0] || null;
   const biggestVar = biggestVariableCategory(transactions);
+  const trend = expenseTrend(transactions, period);
+  const trendMax = Math.max(1, ...trend.map((b) => b.total));
 
   const card = { background: C.card, border: `1px solid ${C.border}`, borderRadius: R.xl, padding: 20 };
 
@@ -39,6 +46,39 @@ export default function Insights({ transactions }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <StatCard label="Spent this month" value={formatMoney(total)} tone="negative" />
         <StatCard label="Fixed vs flexible" value={`${Math.round((fixed / total) * 100)}% fixed`} hint={`${formatMoney(fixed)} fixed · ${formatMoney(variable)} flexible`} />
+      </div>
+
+      {/* Spending trend with week / month / year toggle */}
+      <div style={card}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+          <h2 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: C.ink }}>Spending trend</h2>
+          <div style={{ display: "flex", gap: 4, background: C.bg, borderRadius: 11, padding: 4 }}>
+            {PERIODS.map(([key, label]) => {
+              const active = period === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setPeriod(key)}
+                  style={{ padding: "6px 14px", borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", border: "none", background: active ? C.green : "transparent", color: active ? "#fff" : C.sub }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", height: 150, gap: 10 }}>
+          {trend.map((b, i) => {
+            const hot = i === trend.length - 1;
+            const h = Math.round((b.total / trendMax) * 120);
+            return (
+              <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, flex: 1, justifyContent: "flex-end", height: "100%" }}>
+                <div title={formatMoney(b.total)} style={{ width: "100%", maxWidth: 38, height: Math.max(6, h), borderRadius: 9, background: hot ? C.green : C.barIdle, transition: "height .3s" }} />
+                <span style={{ fontSize: 12, fontWeight: 600, color: hot ? C.ink : C.muted }}>{b.label}</span>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div style={card}>
@@ -80,9 +120,15 @@ export default function Insights({ transactions }) {
       </div>
 
       <div style={{ ...card, fontSize: 14, lineHeight: 1.6, color: C.sub }}>
+        <h2 style={{ margin: "0 0 8px", fontSize: 15, fontWeight: 800, color: C.ink }}>Where your money went</h2>
         {biggest && (
           <p style={{ margin: 0 }}>
-            🏆 <strong style={{ color: C.ink }}>{biggest.category}</strong> takes the largest share of your spending this month ({formatMoney(biggest.total)}).
+            🏆 You spent the most on <strong style={{ color: C.ink }}>{biggest.category}</strong> this month: {formatMoney(biggest.total)} ({Math.round((biggest.total / total) * 100)}% of all spending).
+          </p>
+        )}
+        {breakdown[1] && (
+          <p style={{ margin: "8px 0 0" }}>
+            🥈 Next up: <strong style={{ color: C.ink }}>{breakdown[1].category}</strong> ({formatMoney(breakdown[1].total)}){breakdown[2] ? <> and <strong style={{ color: C.ink }}>{breakdown[2].category}</strong> ({formatMoney(breakdown[2].total)})</> : ""}.
           </p>
         )}
         {biggestVar && (

@@ -96,6 +96,46 @@ export function biggestVariableCategory(transactions, now = new Date()) {
   return sorted.length ? { category: sorted[0][0], total: sorted[0][1] } : null;
 }
 
+// Spending trend buckets for the Insights bar chart.
+// period: "week" (last 7 days), "month" (last 6 months), "year" (last 5 years).
+// Transfers are excluded (only real expenses count).
+export function expenseTrend(transactions, period = "month", now = new Date()) {
+  const expenses = transactions.filter((t) => t.type === "expense" && t.currency === "AUD");
+  const buckets = [];
+
+  if (period === "week") {
+    const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      const total = expenses.filter((t) => t.date === key).reduce((s, t) => s + t.amount, 0);
+      buckets.push({ label: dayLabels[d.getDay()], total });
+    }
+  } else if (period === "year") {
+    const y = now.getFullYear();
+    for (let i = 4; i >= 0; i--) {
+      const yr = y - i;
+      const total = expenses
+        .filter((t) => new Date(t.date).getFullYear() === yr)
+        .reduce((s, t) => s + t.amount, 0);
+      buckets.push({ label: `'${String(yr).slice(2)}`, total });
+    }
+  } else {
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const total = expenses
+        .filter((t) => {
+          const td = new Date(t.date);
+          return td.getFullYear() === d.getFullYear() && td.getMonth() === d.getMonth();
+        })
+        .reduce((s, t) => s + t.amount, 0);
+      buckets.push({ label: d.toLocaleString("en", { month: "short" }), total });
+    }
+  }
+  return buckets;
+}
+
 // Find the next upcoming fixed payment (soonest future due date).
 export function nextFixedPayment(fixedPayments, now = new Date()) {
   const upcoming = fixedPayments

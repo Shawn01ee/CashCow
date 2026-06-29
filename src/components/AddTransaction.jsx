@@ -63,12 +63,23 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
     e.preventDefault();
     const numericAmount = parseFloat(amount);
     if (!numericAmount || numericAmount <= 0) { toast.error("Please enter an amount greater than 0."); return; }
-    if (!category) { toast.error("Please pick a category."); return; }
+    if (isTransfer) {
+      if (!toAccountId || accountId === toAccountId) { toast.error("Pick two different accounts."); return; }
+    } else if (!category) {
+      toast.error("Please pick a category."); return;
+    }
 
     const tx = {
       id: isEditing ? editingTx.id : `tx-${Date.now()}`,
-      type, amount: numericAmount, currency, category, accountId,
-      memo: memo.trim(), date, isFixed,
+      type,
+      amount: numericAmount,
+      currency,
+      category: isTransfer ? "" : category,
+      accountId,
+      toAccountId: isTransfer ? toAccountId : null,
+      memo: memo.trim(),
+      date,
+      isFixed: isTransfer ? false : isFixed,
     };
     setSubmitting(true);
     try {
@@ -85,7 +96,7 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
         {isEditing ? "Edit transaction" : "Add transaction"}
       </h1>
 
-      {!isEditing && (
+      {!isEditing && !isTransfer && (
         <div>
           <p style={labelCls}>Quick add</p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
@@ -100,14 +111,21 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
 
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         {/* type toggle */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          {["expense", "income"].map((t) => {
-            const active = type === t;
-            const activeBg = t === "income" ? C.greenSoft : "#FFE9E2";
-            const activeColor = t === "income" ? C.greenDark : C.coral;
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+          {[
+            { key: "expense", bg: "#FFE9E2", color: C.coral },
+            { key: "income", bg: C.greenSoft, color: C.greenDark },
+            { key: "transfer", bg: "#EAF0FF", color: "#4666CC" },
+          ].map(({ key, bg, color }) => {
+            const active = type === key;
             return (
-              <button key={t} type="button" onClick={() => { setType(t); setCategory(""); }} style={{ textTransform: "capitalize", borderRadius: R.md, padding: "11px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", border: `1px solid ${active ? activeColor + "55" : C.border}`, background: active ? activeBg : "#fff", color: active ? activeColor : C.sub }}>
-                {t}
+              <button
+                key={key}
+                type="button"
+                onClick={() => { setType(key); setCategory(""); }}
+                style={{ textTransform: "capitalize", borderRadius: R.md, padding: "11px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", border: `1px solid ${active ? color + "55" : C.border}`, background: active ? bg : "#fff", color: active ? color : C.sub }}
+              >
+                {key}
               </button>
             );
           })}
@@ -127,20 +145,34 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
           </div>
         </div>
 
-        <div>
-          <label style={labelCls}>Category</label>
-          <select value={category} onChange={(e) => setCategory(e.target.value)} style={field}>
-            <option value="">Select a category…</option>
-            {visibleCategories.map((c) => (<option key={c.id} value={c.name}>{c.icon} {c.name}</option>))}
-          </select>
-        </div>
+        {!isTransfer && (
+          <div>
+            <label style={labelCls}>Category</label>
+            <select value={category} onChange={(e) => setCategory(e.target.value)} style={field}>
+              <option value="">Select a category…</option>
+              {visibleCategories.map((c) => (<option key={c.id} value={c.name}>{c.icon} {c.name}</option>))}
+            </select>
+          </div>
+        )}
 
         <div>
-          <label style={labelCls}>Account</label>
+          <label style={labelCls}>{isTransfer ? "From account" : "Account"}</label>
           <select value={accountId} onChange={(e) => setAccountId(e.target.value)} style={field}>
             {accounts.map((a) => (<option key={a.id} value={a.id}>{a.name} ({a.currency})</option>))}
           </select>
         </div>
+
+        {isTransfer && (
+          <div>
+            <label style={labelCls}>To account</label>
+            <select value={toAccountId} onChange={(e) => setToAccountId(e.target.value)} style={field}>
+              <option value="">Select an account…</option>
+              {accounts.filter((a) => a.id !== accountId).map((a) => (
+                <option key={a.id} value={a.id}>{a.name} ({a.currency})</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div>
           <label style={labelCls}>Memo</label>
@@ -151,16 +183,18 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={field} />
         </div>
 
-        {/* fixed toggle */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: C.card, border: `1px solid ${C.border}`, borderRadius: R.md, padding: "12px 14px" }}>
-          <div>
-            <div style={{ fontSize: 14, color: C.ink, fontWeight: 700 }}>Fixed payment?</div>
-            <div style={{ fontSize: 12, color: C.muted }}>Rent, phone, subscriptions: things you can't easily skip.</div>
+        {/* fixed toggle (not for transfers) */}
+        {!isTransfer && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: C.card, border: `1px solid ${C.border}`, borderRadius: R.md, padding: "12px 14px" }}>
+            <div>
+              <div style={{ fontSize: 14, color: C.ink, fontWeight: 700 }}>Fixed payment?</div>
+              <div style={{ fontSize: 12, color: C.muted }}>Rent, phone, subscriptions: things you can't easily skip.</div>
+            </div>
+            <button type="button" onClick={() => setIsFixed((v) => !v)} style={{ position: "relative", height: 26, width: 46, borderRadius: 999, border: "none", cursor: "pointer", background: isFixed ? C.green : "#D9CFBE", flexShrink: 0 }}>
+              <span style={{ position: "absolute", top: 3, left: 3, height: 20, width: 20, borderRadius: "50%", background: "#fff", transition: "transform .15s", transform: isFixed ? "translateX(20px)" : "translateX(0)" }} />
+            </button>
           </div>
-          <button type="button" onClick={() => setIsFixed((v) => !v)} style={{ position: "relative", height: 26, width: 46, borderRadius: 999, border: "none", cursor: "pointer", background: isFixed ? C.green : "#D9CFBE", flexShrink: 0 }}>
-            <span style={{ position: "absolute", top: 3, left: 3, height: 20, width: 20, borderRadius: "50%", background: "#fff", transition: "transform .15s", transform: isFixed ? "translateX(20px)" : "translateX(0)" }} />
-          </button>
-        </div>
+        )}
 
         <div style={{ display: "flex", gap: 8 }}>
           {isEditing && (

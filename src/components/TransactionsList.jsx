@@ -3,10 +3,11 @@ import { useState } from "react";
 import { formatMoney } from "../utils/calculations";
 import { colors as C, radius as R } from "../theme/tokens";
 
-const FILTERS = ["All", "Income", "Expense", "Fixed", "Variable"];
+const FILTERS = ["All", "Income", "Expense", "Transfer", "Fixed", "Variable"];
 
 export default function TransactionsList({ transactions, accounts, categories, onEdit, onDelete }) {
   const [filter, setFilter] = useState("All");
+  const [accountFilter, setAccountFilter] = useState("all");
   const [pendingDelete, setPendingDelete] = useState(null);
 
   const iconFor = (name) => categories.find((c) => c.name === name)?.icon || "💵";
@@ -18,10 +19,16 @@ export default function TransactionsList({ transactions, accounts, categories, o
   }
 
   const filtered = transactions.filter((t) => {
-    if (filter === "Income") return t.type === "income";
-    if (filter === "Expense") return t.type === "expense";
-    if (filter === "Fixed") return t.isFixed;
-    if (filter === "Variable") return !t.isFixed;
+    // type / fixed filter
+    if (filter === "Income" && t.type !== "income") return false;
+    if (filter === "Expense" && t.type !== "expense") return false;
+    if (filter === "Transfer" && t.type !== "transfer") return false;
+    if (filter === "Fixed" && !t.isFixed) return false;
+    if (filter === "Variable" && (t.type === "transfer" || t.isFixed)) return false;
+    // per-account filter (matches the from OR to account of a transfer)
+    if (accountFilter !== "all" && t.accountId !== accountFilter && t.toAccountId !== accountFilter) {
+      return false;
+    }
     return true;
   });
 
@@ -51,6 +58,20 @@ export default function TransactionsList({ transactions, accounts, categories, o
         })}
       </div>
 
+      {/* Per-account filter */}
+      {accounts.length > 1 && (
+        <select
+          value={accountFilter}
+          onChange={(e) => setAccountFilter(e.target.value)}
+          style={{ alignSelf: "flex-start", borderRadius: R.full, border: `1px solid ${C.border}`, background: "#fff", padding: "8px 14px", fontSize: 13, fontWeight: 700, color: C.ink, fontFamily: "inherit", cursor: "pointer" }}
+        >
+          <option value="all">All accounts</option>
+          {accounts.map((a) => (
+            <option key={a.id} value={a.id}>{a.name}</option>
+          ))}
+        </select>
+      )}
+
       {sortedDates.length === 0 ? (
         <p style={{ fontSize: 14, color: C.muted, margin: 0 }}>No transactions match this filter.</p>
       ) : (
@@ -58,22 +79,33 @@ export default function TransactionsList({ transactions, accounts, categories, o
           <section key={date}>
             <h2 style={{ margin: "0 2px 8px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".04em", color: C.muted }}>{date}</h2>
             <div style={{ ...card, padding: "4px 16px" }}>
-              {groups[date].map((tx) => (
-                <div key={tx.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: `1px solid ${C.divider}` }}>
-                  <div style={{ width: 44, height: 44, borderRadius: R.md, background: C.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19 }}>{iconFor(tx.category)}</div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tx.memo || tx.category}</div>
-                    <div style={{ fontSize: 12, color: C.muted }}>{tx.category} · {accountName(tx.accountId)} · {tx.isFixed ? "Fixed" : "Variable"}</div>
+              {groups[date].map((tx) => {
+                const isTransfer = tx.type === "transfer";
+                return (
+                  <div key={tx.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: `1px solid ${C.divider}` }}>
+                    <div style={{ width: 44, height: 44, borderRadius: R.md, background: C.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19 }}>
+                      {isTransfer ? "🔄" : iconFor(tx.category)}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {tx.memo || (isTransfer ? "Transfer" : tx.category)}
+                      </div>
+                      <div style={{ fontSize: 12, color: C.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {isTransfer
+                          ? `${accountName(tx.accountId)} → ${accountName(tx.toAccountId)}`
+                          : `${tx.category} · ${accountName(tx.accountId)} · ${tx.isFixed ? "Fixed" : "Variable"}`}
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 15, fontWeight: 800, whiteSpace: "nowrap", color: isTransfer ? "#4666CC" : tx.type === "income" ? C.greenDark : C.ink }}>
+                      {isTransfer ? "" : tx.type === "income" ? "+" : "−"}{formatMoney(tx.amount, tx.currency)}
+                    </div>
+                    <div style={{ display: "flex", gap: 2 }}>
+                      <button onClick={() => onEdit(tx)} aria-label="Edit" style={iconBtn}>✏️</button>
+                      <button onClick={() => setPendingDelete(tx)} aria-label="Delete" style={iconBtn}>🗑️</button>
+                    </div>
                   </div>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: tx.type === "income" ? C.greenDark : C.ink, whiteSpace: "nowrap" }}>
-                    {tx.type === "income" ? "+" : "−"}{formatMoney(tx.amount, tx.currency)}
-                  </div>
-                  <div style={{ display: "flex", gap: 2 }}>
-                    <button onClick={() => onEdit(tx)} aria-label="Edit" style={iconBtn}>✏️</button>
-                    <button onClick={() => setPendingDelete(tx)} aria-label="Delete" style={iconBtn}>🗑️</button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         ))
