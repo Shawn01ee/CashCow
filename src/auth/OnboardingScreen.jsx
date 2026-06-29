@@ -2,6 +2,8 @@
 // Reuses the same responsive cc-auth layout as the login screen.
 import { useState } from "react";
 import { colors as C, radius as R, shadow as S, font } from "../theme/tokens";
+import { useLang } from "../i18n";
+import LangToggle from "../components/LangToggle";
 
 const SLIDES = [
   {
@@ -25,6 +27,7 @@ const SLIDES = [
 ];
 
 export default function OnboardingScreen({ onFinish }) {
+  const { t } = useLang();
   const [step, setStep] = useState(0);
   const slide = SLIDES[step];
 
@@ -54,16 +57,19 @@ export default function OnboardingScreen({ onFinish }) {
 
       {/* Right content */}
       <div className="cc-auth-form">
-        <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 44 }}>
-          <div style={{ width: 42, height: 42, borderRadius: 13, background: C.butter, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>🐮</div>
-          <span style={{ fontSize: 21, fontWeight: 800, color: C.ink, letterSpacing: "-.02em" }}>CashCow</span>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 44 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
+            <div style={{ width: 42, height: 42, borderRadius: 13, background: C.butter, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>🐮</div>
+            <span style={{ fontSize: 21, fontWeight: 800, color: C.ink, letterSpacing: "-.02em" }}>CashCow</span>
+          </div>
+          <LangToggle />
         </div>
 
         <div key={slide.title} style={{ whiteSpace: "pre-line", fontSize: 38, lineHeight: 1.18, fontWeight: 800, color: C.ink, letterSpacing: "-.03em", animation: "ccUp .45s ease" }}>
-          {slide.title}
+          {t(slide.title)}
         </div>
         <div style={{ whiteSpace: "pre-line", fontSize: 16, lineHeight: 1.6, color: C.sub, marginTop: 16 }}>
-          {slide.desc}
+          {t(slide.desc)}
         </div>
 
         <div style={{ display: "flex", gap: 8, margin: "36px 0 26px" }}>
@@ -74,10 +80,10 @@ export default function OnboardingScreen({ onFinish }) {
 
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <button onClick={next} style={{ border: "none", cursor: "pointer", background: C.green, color: "#fff", fontSize: 16, fontWeight: 700, padding: "15px 28px", borderRadius: R.md, fontFamily: "inherit", boxShadow: S.card }}>
-            {slide.cta}
+            {t(slide.cta)}
           </button>
           <button onClick={onFinish} style={{ border: "none", cursor: "pointer", background: "transparent", color: C.muted, fontSize: 15, fontWeight: 600, padding: "13px 10px", fontFamily: "inherit" }}>
-            Skip
+            {t("Skip")}
           </button>
         </div>
       </div>

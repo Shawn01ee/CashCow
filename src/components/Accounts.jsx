@@ -8,7 +8,7 @@ import { colors as C, radius as R } from "../theme/tokens";
 
 export default function Accounts({ accounts, onAddAccount, onSetMain, onEditAccount, onDeleteAccount, user, onSignOut }) {
   const toast = useToast();
-  const { t, lang, setLang } = useLang();
+  const { t } = useLang();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
   const [currency, setCurrency] = useState("AUD");
@@ -82,25 +82,6 @@ export default function Accounts({ accounts, onAddAccount, onSetMain, onEditAcco
         {accounts.map((acc) => (
           <AccountCard key={acc.id} account={acc} onSetMain={onSetMain} onEditAccount={onEditAccount} onDeleteAccount={onDeleteAccount} />
         ))}
-      </div>
-
-      {/* Language */}
-      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: R.xl, padding: 18 }}>
-        <div style={{ fontSize: 12, color: C.muted, marginBottom: 8 }}>{t("Language")}</div>
-        <div style={{ display: "flex", gap: 8 }}>
-          {[["en", "English"], ["ko", "한국어"]].map(([code, label]) => {
-            const active = lang === code;
-            return (
-              <button
-                key={code}
-                onClick={() => setLang(code)}
-                style={{ flex: 1, border: `1px solid ${active ? C.green : C.border}`, background: active ? C.greenSoft : "#fff", color: active ? C.greenDark : C.sub, borderRadius: R.md, padding: "10px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
       </div>
 
       {/* Account / logout */}

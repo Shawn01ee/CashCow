@@ -4,10 +4,13 @@
 import { useState, useRef } from "react";
 import { supabase } from "../lib/supabase";
 import { colors as C, radius as R, shadow as S, font } from "../theme/tokens";
+import { useLang } from "../i18n";
+import LangToggle from "../components/LangToggle";
 
 const CODE_LENGTH = 8;
 
 export default function AuthScreen() {
+  const { t } = useLang();
   const [step, setStep] = useState("email"); // "email" | "code"
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -95,44 +98,46 @@ export default function AuthScreen() {
           <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-.02em" }}>CashCow</span>
         </div>
         <div style={{ fontSize: 38, lineHeight: 1.2, fontWeight: 800, letterSpacing: "-.03em" }}>
-          Money habits,
-          <br />made simple
+          {t("Money habits,")}
+          <br />{t("made simple")}
         </div>
-        <div style={{ fontSize: 16, lineHeight: 1.6, opacity: 0.92, marginTop: 16 }}>
-          Track spending, bills, and what's safe to spend,
-          <br />all in one friendly place.
+        <div style={{ fontSize: 16, lineHeight: 1.6, opacity: 0.92, marginTop: 16, whiteSpace: "pre-line" }}>
+          {t("Track spending, bills and what's safe to spend, all in one friendly place.")}
         </div>
         <div style={{ display: "flex", gap: 24, marginTop: 40 }}>
           <div>
-            <div style={{ fontSize: 24, fontWeight: 800 }}>Daily</div>
-            <div style={{ fontSize: 13, opacity: 0.85 }}>safe-to-spend</div>
+            <div style={{ fontSize: 24, fontWeight: 800 }}>{t("Daily")}</div>
+            <div style={{ fontSize: 13, opacity: 0.85 }}>{t("safe-to-spend")}</div>
           </div>
           <div style={{ width: 1, background: "rgba(255,255,255,.25)" }} />
           <div>
-            <div style={{ fontSize: 24, fontWeight: 800 }}>No password</div>
-            <div style={{ fontSize: 13, opacity: 0.85 }}>just a code</div>
+            <div style={{ fontSize: 24, fontWeight: 800 }}>{t("No password")}</div>
+            <div style={{ fontSize: 13, opacity: 0.85 }}>{t("just a code")}</div>
           </div>
         </div>
       </div>
 
       {/* Right form */}
       <div className="cc-auth-form">
-        {/* mobile logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 28 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 13, background: C.butter, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 21 }}>🐮</div>
-          <span style={{ fontSize: 20, fontWeight: 800, color: C.ink, letterSpacing: "-.02em" }}>CashCow</span>
+        {/* top row: mobile logo + language toggle */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 13, background: C.butter, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 21 }}>🐮</div>
+            <span style={{ fontSize: 20, fontWeight: 800, color: C.ink, letterSpacing: "-.02em" }}>CashCow</span>
+          </div>
+          <LangToggle />
         </div>
 
         {step === "email" ? (
           <>
             <div style={{ fontSize: 30, fontWeight: 800, color: C.ink, letterSpacing: "-.02em" }}>
-              Welcome 👋
+              {t("Welcome")}
             </div>
             <div style={{ fontSize: 15, color: C.muted, marginTop: 8, marginBottom: 28 }}>
-              Log in or sign up with your email
+              {t("Log in or sign up with your email")}
             </div>
             <form onSubmit={sendCode} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <label style={{ fontSize: 13, fontWeight: 700, color: C.sub }}>Email</label>
+              <label style={{ fontSize: 13, fontWeight: 700, color: C.sub }}>{t("Email")}</label>
               <div style={inputWrap}>
                 <span style={{ fontSize: 16, color: C.muted }}>✉️</span>
                 <input
@@ -149,26 +154,26 @@ export default function AuthScreen() {
               </div>
               {message && <Note message={message} />}
               <button type="submit" disabled={busy} style={ctaStyle(busy)}>
-                {busy ? "Sending…" : "Send me a code"}
+                {busy ? t("Sending…") : t("Send me a code")}
               </button>
               <div style={{ textAlign: "center", fontSize: 13, color: C.muted, marginTop: 2 }}>
-                No password to remember. We'll email you a code. 🐮
+                {t("No password to remember. We'll email you a code. 🐮")}
               </div>
             </form>
           </>
         ) : (
           <>
             <div style={{ fontSize: 30, fontWeight: 800, color: C.ink, letterSpacing: "-.02em" }}>
-              Almost there!
+              {t("Almost there!")}
             </div>
             <div style={{ fontSize: 15, color: C.muted, marginTop: 8, marginBottom: 28 }}>
-              Enter the 8-digit code we emailed you
+              {t("Enter the 8-digit code we emailed you")}
             </div>
             <form onSubmit={verifyCode} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <CodeBoxes code={code} setCode={setCode} />
               {message && <Note message={message} />}
               <button type="submit" disabled={busy} style={ctaStyle(busy)}>
-                {busy ? "Verifying…" : "Log in"}
+                {busy ? t("Verifying…") : t("Log in")}
               </button>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
                 <button
@@ -180,10 +185,10 @@ export default function AuthScreen() {
                   }}
                   style={linkBtn(C.muted)}
                 >
-                  ← Change email
+                  {t("← Change email")}
                 </button>
                 <button type="button" onClick={sendCode} disabled={busy} style={linkBtn(C.green)}>
-                  Resend code
+                  {t("Resend code")}
                 </button>
               </div>
             </form>
