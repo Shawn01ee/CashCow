@@ -33,6 +33,20 @@ export function totalAudBalance(accounts) {
     .reduce((sum, a) => sum + a.balance, 0);
 }
 
+// "Available" = money you can freely spend (AUD, not protected).
+export function availableAudBalance(accounts) {
+  return accounts
+    .filter((a) => a.currency === "AUD" && !a.isProtected)
+    .reduce((sum, a) => sum + a.balance, 0);
+}
+
+// "Protected" = money set aside (rent reserve, savings) — off-limits for spending.
+export function protectedAudBalance(accounts) {
+  return accounts
+    .filter((a) => a.currency === "AUD" && a.isProtected)
+    .reduce((sum, a) => sum + a.balance, 0);
+}
+
 // The single "main" account (falls back to the first account).
 export function mainAccount(accounts) {
   return accounts.find((a) => a.isMain) || accounts[0] || null;
@@ -177,32 +191,32 @@ function startOfDay(d) {
 // ----------------------------------------------------------------------
 // Safe to Spend — the heart of CashCow.
 //
-// We answer: "How much can I spend each day and still cover my next big
-// fixed payment?"
+// We start from your AVAILABLE money (not protected accounts — that's money
+// you've already set aside). If the next fixed payment comes from a protected
+// account, it's already covered, so we don't subtract it again.
 //
-//   Safe per day = (AUD balance - next fixed payment) / days until it's due
-//
-// Returns an object the dashboard can use directly:
-//   { perDay, daysLeft, target, covered, amountNeeded }
+//   Safe per day = (available - uncovered fixed payment) / days until it's due
 // ----------------------------------------------------------------------
 export function safeToSpend(accounts, fixedPayments, now = new Date()) {
-  const balance = totalAudBalance(accounts);
+  const available = availableAudBalance(accounts);
   const next = nextFixedPayment(fixedPayments, now);
 
-  // No upcoming fixed payment? Then nothing is "locked up" — all balance is free.
+  // No upcoming fixed payment? Then all available money is free to spend.
   if (!next) {
-    return { perDay: balance, daysLeft: 0, target: null, covered: true, amountNeeded: 0 };
+    return { perDay: available, daysLeft: 0, target: null, covered: true, amountNeeded: 0 };
   }
 
   const daysLeft = Math.max(1, daysUntil(next.nextDueDate, now)); // avoid divide-by-zero
-  const leftover = balance - next.amount; // money free to spend after covering the payment
+  // If the bill is paid from a protected account, it's already set aside.
+  const fromProtected = accounts.find((a) => a.id === next.accountId)?.isProtected;
+  const leftover = fromProtected ? available : available - next.amount;
   const perDay = leftover / daysLeft;
 
   return {
     perDay,
     daysLeft,
-    target: next,                 // the fixed payment we're saving for
-    covered: leftover >= 0,       // can the balance cover it at all?
-    amountNeeded: leftover < 0 ? Math.abs(leftover) : 0, // shortfall, if any
+    target: next,
+    covered: leftover >= 0,
+    amountNeeded: leftover < 0 ? Math.abs(leftover) : 0,
   };
 }

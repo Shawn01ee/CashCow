@@ -17,6 +17,8 @@ const toAppAccount = (r) => ({
   currency: r.currency,
   balance: Number(r.balance),
   isMain: r.is_main,
+  isProtected: Boolean(r.protected),
+  purpose: r.purpose || "",
 });
 const toAppCategory = (r) => ({
   id: r.id,
@@ -130,6 +132,8 @@ export async function insertAccount(userId, account) {
       currency: account.currency,
       balance: account.balance,
       is_main: account.isMain,
+      protected: account.isProtected || false,
+      purpose: account.purpose || null,
     })
     .select()
     .single();
@@ -150,7 +154,13 @@ export async function setAccountBalance(accountId, balance) {
 export async function updateAccount(account) {
   const { data, error } = await supabase
     .from("accounts")
-    .update({ name: account.name, currency: account.currency, balance: account.balance })
+    .update({
+      name: account.name,
+      currency: account.currency,
+      balance: account.balance,
+      protected: account.isProtected || false,
+      purpose: account.purpose || null,
+    })
     .eq("id", account.id)
     .select()
     .single();

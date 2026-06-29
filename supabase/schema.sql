@@ -58,6 +58,10 @@ alter table transactions drop constraint if exists transactions_type_check;
 alter table transactions add constraint transactions_type_check check (type in ('income', 'expense', 'transfer'));
 -- "rating" lets you reflect on a purchase: good (worth it) / warn (meh) / bad (regret).
 alter table transactions add column if not exists rating text;
+-- Protected accounts hold money you've set aside (rent reserve, savings) — it's
+-- excluded from "safe to spend". "purpose" is an optional label like "Rent reserve".
+alter table accounts add column if not exists protected boolean default false;
+alter table accounts add column if not exists purpose text;
 
 create table if not exists fixed_payments (
   id uuid primary key default gen_random_uuid(),

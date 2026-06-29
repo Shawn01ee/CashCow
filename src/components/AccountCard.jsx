@@ -10,11 +10,15 @@ export default function AccountCard({ account, onSetMain, onEditAccount, onDelet
   const [name, setName] = useState(account.name);
   const [currency, setCurrency] = useState(account.currency);
   const [balance, setBalance] = useState(String(account.balance));
+  const [isProtected, setIsProtected] = useState(account.isProtected || false);
+  const [purpose, setPurpose] = useState(account.purpose || "");
 
   function openEdit() {
     setName(account.name);
     setCurrency(account.currency);
     setBalance(String(account.balance));
+    setIsProtected(account.isProtected || false);
+    setPurpose(account.purpose || "");
     setConfirmDel(false);
     setEditing(true);
   }
@@ -26,6 +30,8 @@ export default function AccountCard({ account, onSetMain, onEditAccount, onDelet
       name: name.trim() || account.name,
       currency,
       balance: Number.isNaN(num) ? account.balance : num,
+      isProtected,
+      purpose: purpose.trim(),
     });
     setEditing(false);
   }
@@ -45,13 +51,18 @@ export default function AccountCard({ account, onSetMain, onEditAccount, onDelet
     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: R.xl, padding: 18 }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15, fontWeight: 700, color: C.ink }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", fontSize: 15, fontWeight: 700, color: C.ink }}>
             {account.name}
             {account.isMain && (
               <span style={{ background: C.greenSoft, color: C.greenDark, padding: "2px 8px", borderRadius: R.full, fontSize: 10, fontWeight: 800 }}>MAIN</span>
             )}
+            {account.isProtected && (
+              <span style={{ background: "#EAF0FF", color: "#4666CC", padding: "2px 8px", borderRadius: R.full, fontSize: 10, fontWeight: 800 }}>🔒 PROTECTED</span>
+            )}
           </div>
-          <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{account.currency} account</div>
+          <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>
+            {account.currency} account{account.purpose ? ` · ${account.purpose}` : ""}
+          </div>
         </div>
         {!account.isMain && !editing && (
           <button onClick={() => onSetMain(account.id)} style={btn("#fff", C.sub, `1px solid ${C.border}`)}>
@@ -70,6 +81,21 @@ export default function AccountCard({ account, onSetMain, onEditAccount, onDelet
             </select>
             <input type="number" step="0.01" value={balance} onChange={(e) => setBalance(e.target.value)} placeholder="Balance" style={field} />
           </div>
+
+          {/* Protected toggle */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: C.bg, borderRadius: R.md, padding: "10px 12px" }}>
+            <div>
+              <div style={{ fontSize: 13, color: C.ink, fontWeight: 700 }}>🔒 Protected money</div>
+              <div style={{ fontSize: 11, color: C.muted }}>Set aside — excluded from "safe to spend".</div>
+            </div>
+            <button type="button" onClick={() => setIsProtected((v) => !v)} style={{ position: "relative", height: 24, width: 42, borderRadius: 999, border: "none", cursor: "pointer", background: isProtected ? "#4666CC" : "#D9CFBE", flexShrink: 0 }}>
+              <span style={{ position: "absolute", top: 3, left: 3, height: 18, width: 18, borderRadius: "50%", background: "#fff", transition: "transform .15s", transform: isProtected ? "translateX(18px)" : "translateX(0)" }} />
+            </button>
+          </div>
+          {isProtected && (
+            <input type="text" value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="What's it for? e.g. Rent reserve" style={field} />
+          )}
+
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={() => setEditing(false)} style={{ ...btn("#fff", C.sub, `1px solid ${C.border}`), flex: 1 }}>Cancel</button>
             <button onClick={save} style={{ ...btn(C.green, "#fff"), flex: 1 }}>Save</button>

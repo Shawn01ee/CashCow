@@ -3,6 +3,8 @@ import StatCard from "./StatCard";
 import MoneyFeed from "./MoneyFeed";
 import {
   totalAudBalance,
+  availableAudBalance,
+  protectedAudBalance,
   mainAccount,
   monthlyIncome,
   monthlyExpense,
@@ -27,6 +29,8 @@ export default function Dashboard({
   if (!hasAccounts) return <Onboarding onNavigate={onNavigate} />;
 
   const totalAud = totalAudBalance(accounts);
+  const available = availableAudBalance(accounts);
+  const protectedBal = protectedAudBalance(accounts);
   const main = mainAccount(accounts);
   const income = monthlyIncome(transactions);
   const expense = monthlyExpense(transactions);
@@ -48,11 +52,20 @@ export default function Dashboard({
         <div style={{ fontSize: 42, fontWeight: 800, letterSpacing: "-.03em", margin: "6px 0 12px" }}>
           {formatMoney(totalAud)}
         </div>
-        {main && (
+        {protectedBal > 0 ? (
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: C.butter, color: "#5A4000", padding: "6px 13px", borderRadius: R.full, fontSize: 13, fontWeight: 800 }}>
+              Available {formatMoney(available)}
+            </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,.18)", color: "#fff", padding: "6px 13px", borderRadius: R.full, fontSize: 13, fontWeight: 800 }}>
+              🔒 Protected {formatMoney(protectedBal)}
+            </span>
+          </div>
+        ) : main ? (
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: C.butter, color: "#5A4000", padding: "6px 13px", borderRadius: R.full, fontSize: 13, fontWeight: 800 }}>
             Main · {main.name} {formatMoney(main.balance, main.currency)}
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Safe to spend hero insight */}
