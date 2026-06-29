@@ -2,6 +2,15 @@
 
 All notable changes to CashCow. Newest first.
 
+## v0.9.0 — Protected money & more categories (2026-06-30)
+- **Available vs Protected**: mark accounts as "protected" (rent reserve,
+  savings) with an optional purpose label. Safe-to-spend now starts from your
+  *available* money and won't double-count bills paid from a protected account.
+  The dashboard shows Available vs 🔒 Protected.
+- **More detailed categories**: Delivery, Convenience, Taxi, Dessert, Alcohol,
+  Beauty, Entertainment, Gifts, Utilities, Laundry (added for new and existing
+  users).
+
 ## v0.8.0 — Months & subscriptions (2026-06-30)
 - **Month selector** (`‹ June 2026 ›`) on Activity and Insights — page through
   any month and the lists, charts, category breakdown and ratings all follow it.

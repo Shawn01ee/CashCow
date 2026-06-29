@@ -169,6 +169,16 @@ begin
     (new.id, 'Subscription', 'expense', '🔁', true),
     (new.id, 'Phone', 'expense', '📱', true),
     (new.id, 'Travel', 'expense', '✈️', false),
+    (new.id, 'Delivery', 'expense', '🛵', false),
+    (new.id, 'Convenience', 'expense', '🏪', false),
+    (new.id, 'Taxi', 'expense', '🚕', false),
+    (new.id, 'Dessert', 'expense', '🍰', false),
+    (new.id, 'Alcohol', 'expense', '🍺', false),
+    (new.id, 'Beauty', 'expense', '💄', false),
+    (new.id, 'Entertainment', 'expense', '🎬', false),
+    (new.id, 'Gifts', 'expense', '🎁', false),
+    (new.id, 'Utilities', 'expense', '💡', true),
+    (new.id, 'Laundry', 'expense', '🧺', false),
     (new.id, 'Other', 'expense', '📦', false),
     (new.id, 'Family Support', 'income', '💸', true),
     (new.id, 'Part-time Job', 'income', '💼', true),
@@ -186,3 +196,25 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function handle_new_user();
+
+-- ---------- BACKFILL NEWER DEFAULT CATEGORIES ----------
+-- Existing users were created before some categories existed. Add any that are
+-- missing (matched by name, so it never creates duplicates). Safe to re-run.
+insert into categories (user_id, name, type, icon, is_fixed)
+select u.id, v.name, 'expense', v.icon, v.is_fixed
+from auth.users u
+cross join (values
+  ('Delivery', '🛵', false),
+  ('Convenience', '🏪', false),
+  ('Taxi', '🚕', false),
+  ('Dessert', '🍰', false),
+  ('Alcohol', '🍺', false),
+  ('Beauty', '💄', false),
+  ('Entertainment', '🎬', false),
+  ('Gifts', '🎁', false),
+  ('Utilities', '💡', true),
+  ('Laundry', '🧺', false)
+) as v(name, icon, is_fixed)
+where not exists (
+  select 1 from categories c where c.user_id = u.id and c.name = v.name
+);
