@@ -28,6 +28,7 @@ const toAppCategory = (r) => ({
 const toAppTx = (r) => ({
   id: r.id,
   accountId: r.account_id,
+  toAccountId: r.to_account_id, // only set for transfers
   type: r.type,
   amount: Number(r.amount),
   currency: r.currency,
@@ -75,6 +76,7 @@ export async function insertTransaction(userId, tx) {
     .insert({
       user_id: userId,
       account_id: tx.accountId,
+      to_account_id: tx.toAccountId || null,
       type: tx.type,
       amount: tx.amount,
       currency: tx.currency,
@@ -94,6 +96,7 @@ export async function updateTransaction(tx) {
     .from("transactions")
     .update({
       account_id: tx.accountId,
+      to_account_id: tx.toAccountId || null,
       type: tx.type,
       amount: tx.amount,
       currency: tx.currency,

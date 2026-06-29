@@ -18,9 +18,14 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
   const [currency, setCurrency] = useState(editingTx?.currency || "AUD");
   const [category, setCategory] = useState(editingTx?.category || "");
   const [accountId, setAccountId] = useState(editingTx?.accountId || accounts[0]?.id || "");
+  const [toAccountId, setToAccountId] = useState(
+    editingTx?.toAccountId || accounts.find((a) => a.id !== (editingTx?.accountId || accounts[0]?.id))?.id || ""
+  );
   const [memo, setMemo] = useState(editingTx?.memo || "");
   const [date, setDate] = useState(editingTx?.date || today());
   const [isFixed, setIsFixed] = useState(editingTx?.isFixed || false);
+
+  const isTransfer = type === "transfer";
 
   const field = {
     width: "100%", borderRadius: R.md, border: `1.5px solid ${C.border}`,

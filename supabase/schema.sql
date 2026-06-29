@@ -40,7 +40,9 @@ create table if not exists transactions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   account_id uuid references accounts(id) on delete set null,
-  type text not null check (type in ('income', 'expense')),
+  -- For transfers, account_id is the FROM account and to_account_id is the TO.
+  to_account_id uuid references accounts(id) on delete set null,
+  type text not null check (type in ('income', 'expense', 'transfer')),
   amount numeric not null check (amount >= 0),
   currency text not null default 'AUD',
   category text,
@@ -49,6 +51,11 @@ create table if not exists transactions (
   is_fixed boolean default false,
   created_at timestamptz default now()
 );
+
+-- Migrations for existing databases (safe to run repeatedly):
+alter table transactions add column if not exists to_account_id uuid references accounts(id) on delete set null;
+alter table transactions drop constraint if exists transactions_type_check;
+alter table transactions add constraint transactions_type_check check (type in ('income', 'expense', 'transfer'));
 
 create table if not exists fixed_payments (
   id uuid primary key default gen_random_uuid(),

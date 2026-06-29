@@ -107,7 +107,23 @@ function CashCowApp({ user }) {
   const hasAccounts = accounts.length > 0;
 
   // ---- Balance helpers ----
-  const txEffect = (tx) => (tx.type === "income" ? tx.amount : -tx.amount);
+  // How a transaction changes account balances, as { accountId: delta }.
+  // income: +amount to its account. expense: -amount. transfer: -from, +to.
+  function txDeltas(tx) {
+    if (tx.type === "transfer") {
+      const d = {};
+      if (tx.accountId) d[tx.accountId] = (d[tx.accountId] || 0) - tx.amount;
+      if (tx.toAccountId) d[tx.toAccountId] = (d[tx.toAccountId] || 0) + tx.amount;
+      return d;
+    }
+    return { [tx.accountId]: tx.type === "income" ? tx.amount : -tx.amount };
+  }
+  const negateDeltas = (d) => Object.fromEntries(Object.entries(d).map(([k, v]) => [k, -v]));
+  function mergeDeltas(...maps) {
+    const r = {};
+    for (const m of maps) for (const [k, v] of Object.entries(m)) r[k] = (r[k] || 0) + v;
+    return r;
+  }
 
   // Apply a delta to one account in BOTH local state and the database.
   // Compute the new balance up front (so the DB write always gets the right
@@ -137,7 +153,7 @@ function CashCowApp({ user }) {
     try {
       const saved = await api.insertTransaction(user.id, tx);
       setTransactions((prev) => [saved, ...prev]);
-      await changeBalance(saved.accountId, txEffect(saved));
+      await applyDeltas(txDeltas(saved));
       setPage("transactions");
     } catch (err) {
       toast.error("Couldn't save: " + err.message);
@@ -150,12 +166,8 @@ function CashCowApp({ user }) {
       const saved = await api.updateTransaction(updated);
       setTransactions((prev) => prev.map((t) => (t.id === saved.id ? saved : t)));
 
-      // Net balance change PER account: undo old effect, apply new effect.
-      // If the account is unchanged these combine into a single delta.
-      const deltas = {};
-      if (old) deltas[old.accountId] = (deltas[old.accountId] || 0) - txEffect(old);
-      deltas[saved.accountId] = (deltas[saved.accountId] || 0) + txEffect(saved);
-      await applyDeltas(deltas);
+      // Net balance change per account: undo the old effect, apply the new one.
+      await applyDeltas(mergeDeltas(old ? negateDeltas(txDeltas(old)) : {}, txDeltas(saved)));
 
       setEditingTx(null);
       setPage("transactions");
@@ -170,7 +182,7 @@ function CashCowApp({ user }) {
       const tx = transactions.find((t) => t.id === id);
       await api.deleteTransaction(id);
       setTransactions((prev) => prev.filter((t) => t.id !== id));
-      if (tx) await changeBalance(tx.accountId, -txEffect(tx));
+      if (tx) await applyDeltas(negateDeltas(txDeltas(tx)));
       toast.success("Transaction deleted");
     } catch (err) {
       toast.error("Couldn't delete: " + err.message);
@@ -267,7 +279,7 @@ function CashCowApp({ user }) {
       };
       const savedTx = await api.insertTransaction(user.id, tx);
       setTransactions((prev) => [savedTx, ...prev]);
-      await changeBalance(savedTx.accountId, txEffect(savedTx));
+      await applyDeltas(txDeltas(savedTx));
 
       if (fp.frequency === "once") {
         await api.deleteFixedPayment(fp.id);
