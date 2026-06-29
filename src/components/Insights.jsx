@@ -22,28 +22,47 @@ const RATING_META = [
 ];
 
 const COLORS = C.cat;
-const PERIODS = [["week", "Week"], ["month", "Month"], ["year", "Year"]];
+const GRANULARITIES = [["month", "Month"], ["year", "Year"]];
 
 export default function Insights({ transactions, monthDate = new Date(), onMonthChange }) {
-  const [period, setPeriod] = useState("month");
+  const [granularity, setGranularity] = useState("month"); // "month" | "year"
 
-  // All month-based stats use the selected month.
-  const total = monthlyExpense(transactions, monthDate);
-  const { fixed, variable } = fixedVsVariable(transactions, monthDate);
-  const breakdown = categoryBreakdown(transactions, monthDate);
+  // Stats follow the selected period (a month, or the whole year).
+  const total = monthlyExpense(transactions, monthDate, granularity);
+  const { fixed, variable } = fixedVsVariable(transactions, monthDate, granularity);
+  const breakdown = categoryBreakdown(transactions, monthDate, granularity);
   const biggest = breakdown[0] || null;
-  const biggestVar = biggestVariableCategory(transactions, monthDate);
-  const trend = expenseTrend(transactions, period, monthDate);
+  const biggestVar = biggestVariableCategory(transactions, monthDate, granularity);
+  // Trend bars: last 6 months in month view, last 5 years in year view.
+  const trend = expenseTrend(transactions, granularity, monthDate);
   const trendMax = Math.max(1, ...trend.map((b) => b.total));
-  const rating = ratingSummary(transactions, monthDate);
+  const rating = ratingSummary(transactions, monthDate, granularity);
   const ratedCount = rating.good.count + rating.warn.count + rating.bad.count;
+  const periodLabel = granularity === "year" ? "this year" : "this month";
 
   const card = { background: C.card, border: `1px solid ${C.border}`, borderRadius: R.xl, padding: 20 };
 
   const Header = (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
       <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.ink }}>Insights</h1>
-      {onMonthChange && <MonthNav monthDate={monthDate} onChange={onMonthChange} />}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        {/* Month vs Year analysis */}
+        <div style={{ display: "flex", gap: 4, background: C.bg, borderRadius: 11, padding: 4 }}>
+          {GRANULARITIES.map(([key, label]) => {
+            const active = granularity === key;
+            return (
+              <button
+                key={key}
+                onClick={() => setGranularity(key)}
+                style={{ padding: "6px 14px", borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", border: "none", background: active ? C.green : "transparent", color: active ? "#fff" : C.sub }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+        {onMonthChange && <MonthNav monthDate={monthDate} onChange={onMonthChange} granularity={granularity} />}
+      </div>
     </div>
   );
 
@@ -52,7 +71,7 @@ export default function Insights({ transactions, monthDate = new Date(), onMonth
       <div style={{ animation: "ccUp .35s ease", display: "flex", flexDirection: "column", gap: 16 }}>
         {Header}
         <p style={{ fontSize: 14, color: C.muted, margin: 0 }}>
-          No spending recorded for this month. Add a few transactions or pick another month.
+          No spending recorded for {periodLabel}. Add a few transactions or pick another period.
         </p>
       </div>
     );
@@ -63,7 +82,7 @@ export default function Insights({ transactions, monthDate = new Date(), onMonth
       {Header}
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <StatCard label="Spent this month" value={formatMoney(total)} tone="negative" />
+        <StatCard label={`Spent ${periodLabel}`} value={formatMoney(total)} tone="negative" />
         <StatCard label="Fixed vs flexible" value={`${Math.round((fixed / total) * 100)}% fixed`} hint={`${formatMoney(fixed)} fixed · ${formatMoney(variable)} flexible`} />
       </div>
 
@@ -104,25 +123,14 @@ export default function Insights({ transactions, monthDate = new Date(), onMonth
         </div>
       )}
 
-      {/* Spending trend with week / month / year toggle */}
+      {/* Spending trend — last 6 months (month view) or last 5 years (year view) */}
       <div style={card}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
-          <h2 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: C.ink }}>Spending trend</h2>
-          <div style={{ display: "flex", gap: 4, background: C.bg, borderRadius: 11, padding: 4 }}>
-            {PERIODS.map(([key, label]) => {
-              const active = period === key;
-              return (
-                <button
-                  key={key}
-                  onClick={() => setPeriod(key)}
-                  style={{ padding: "6px 14px", borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", border: "none", background: active ? C.green : "transparent", color: active ? "#fff" : C.sub }}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <h2 style={{ margin: "0 0 18px", fontSize: 15, fontWeight: 800, color: C.ink }}>
+          Spending trend{" "}
+          <span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>
+            ({granularity === "year" ? "last 5 years" : "last 6 months"})
+          </span>
+        </h2>
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", height: 150, gap: 10 }}>
           {trend.map((b, i) => {
             const hot = i === trend.length - 1;
@@ -179,7 +187,7 @@ export default function Insights({ transactions, monthDate = new Date(), onMonth
         <h2 style={{ margin: "0 0 8px", fontSize: 15, fontWeight: 800, color: C.ink }}>Where your money went</h2>
         {biggest && (
           <p style={{ margin: 0 }}>
-            🏆 You spent the most on <strong style={{ color: C.ink }}>{biggest.category}</strong> this month: {formatMoney(biggest.total)} ({Math.round((biggest.total / total) * 100)}% of all spending).
+            🏆 You spent the most on <strong style={{ color: C.ink }}>{biggest.category}</strong> {periodLabel}: {formatMoney(biggest.total)} ({Math.round((biggest.total / total) * 100)}% of all spending).
           </p>
         )}
         {breakdown[1] && (

@@ -2,6 +2,13 @@
 
 All notable changes to CashCow. Newest first.
 
+## v0.10.0 — Year analysis & more quick-adds (2026-06-30)
+- **Month / Year analysis** in Insights: toggle between a single month and a
+  whole year. Totals, fixed-vs-flexible, category breakdown, ratings and the
+  trend chart all follow your choice (`‹ June 2026 ›` or `‹ 2026 ›`).
+- **More quick-adds** on the Add screen: Dinner, Delivery, Dessert, Convenience,
+  Taxi, Beer — alongside Coffee, Lunch, Groceries, Transport.
+
 ## v0.9.0 — Protected money & more categories (2026-06-30)
 - **Available vs Protected**: mark accounts as "protected" (rent reserve,
   savings) with an optional purpose label. Safe-to-spend now starts from your

@@ -52,33 +52,39 @@ export function mainAccount(accounts) {
   return accounts.find((a) => a.isMain) || accounts[0] || null;
 }
 
-// All AUD transactions that happened in the current month.
-function thisMonthAudTx(transactions, now = new Date()) {
-  return transactions.filter((t) => t.currency === "AUD" && isSameMonth(t.date, now));
+// AUD transactions within a period: "month" (year+month) or "year" (year only).
+function inPeriodAudTx(transactions, ref = new Date(), granularity = "month") {
+  return transactions.filter((t) => {
+    if (t.currency !== "AUD") return false;
+    const d = new Date(t.date);
+    if (d.getFullYear() !== ref.getFullYear()) return false;
+    if (granularity === "month" && d.getMonth() !== ref.getMonth()) return false;
+    return true;
+  });
 }
 
-// Total income this month (AUD).
-export function monthlyIncome(transactions, now = new Date()) {
-  return thisMonthAudTx(transactions, now)
+// Total income in the period (AUD).
+export function monthlyIncome(transactions, now = new Date(), granularity = "month") {
+  return inPeriodAudTx(transactions, now, granularity)
     .filter((t) => t.type === "income")
     .reduce((sum, t) => sum + t.amount, 0);
 }
 
-// Total expense this month (AUD).
-export function monthlyExpense(transactions, now = new Date()) {
-  return thisMonthAudTx(transactions, now)
+// Total expense in the period (AUD).
+export function monthlyExpense(transactions, now = new Date(), granularity = "month") {
+  return inPeriodAudTx(transactions, now, granularity)
     .filter((t) => t.type === "expense")
     .reduce((sum, t) => sum + t.amount, 0);
 }
 
-// "Left this month" = income - expense (friendlier name than "net cash flow").
-export function monthlyNet(transactions, now = new Date()) {
-  return monthlyIncome(transactions, now) - monthlyExpense(transactions, now);
+// Income minus expense for the period.
+export function monthlyNet(transactions, now = new Date(), granularity = "month") {
+  return monthlyIncome(transactions, now, granularity) - monthlyExpense(transactions, now, granularity);
 }
 
-// Split this month's expenses into fixed vs variable totals.
-export function fixedVsVariable(transactions, now = new Date()) {
-  const expenses = thisMonthAudTx(transactions, now).filter((t) => t.type === "expense");
+// Split the period's expenses into fixed vs variable totals.
+export function fixedVsVariable(transactions, now = new Date(), granularity = "month") {
+  const expenses = inPeriodAudTx(transactions, now, granularity).filter((t) => t.type === "expense");
   const fixed = expenses.filter((t) => t.isFixed).reduce((s, t) => s + t.amount, 0);
   const variable = expenses.filter((t) => !t.isFixed).reduce((s, t) => s + t.amount, 0);
   return { fixed, variable };
@@ -86,8 +92,8 @@ export function fixedVsVariable(transactions, now = new Date()) {
 
 // Build a category breakdown for this month's expenses.
 // Returns: [{ category, total }] sorted biggest first.
-export function categoryBreakdown(transactions, now = new Date()) {
-  const expenses = thisMonthAudTx(transactions, now).filter((t) => t.type === "expense");
+export function categoryBreakdown(transactions, now = new Date(), granularity = "month") {
+  const expenses = inPeriodAudTx(transactions, now, granularity).filter((t) => t.type === "expense");
   const totals = {};
   for (const t of expenses) {
     totals[t.category] = (totals[t.category] || 0) + t.amount;
@@ -97,9 +103,9 @@ export function categoryBreakdown(transactions, now = new Date()) {
     .sort((a, b) => b.total - a.total);
 }
 
-// Biggest variable (flexible) spending category this month, e.g. "Eating Out".
-export function biggestVariableCategory(transactions, now = new Date()) {
-  const expenses = thisMonthAudTx(transactions, now).filter(
+// Biggest variable (flexible) spending category in the period, e.g. "Eating Out".
+export function biggestVariableCategory(transactions, now = new Date(), granularity = "month") {
+  const expenses = inPeriodAudTx(transactions, now, granularity).filter(
     (t) => t.type === "expense" && !t.isFixed
   );
   const totals = {};
@@ -112,8 +118,8 @@ export function biggestVariableCategory(transactions, now = new Date()) {
 
 // Summarise how this month's expenses felt (from the rating field).
 // Returns { good, warn, bad } each as { count, total }.
-export function ratingSummary(transactions, now = new Date()) {
-  const expenses = thisMonthAudTx(transactions, now).filter((t) => t.type === "expense");
+export function ratingSummary(transactions, now = new Date(), granularity = "month") {
+  const expenses = inPeriodAudTx(transactions, now, granularity).filter((t) => t.type === "expense");
   const sum = {
     good: { count: 0, total: 0 },
     warn: { count: 0, total: 0 },
