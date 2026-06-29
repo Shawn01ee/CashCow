@@ -52,6 +52,34 @@ const ko = {
   "Get started": "시작하기",
   Skip: "건너뛰기",
 
+  // Dashboard
+  "Total balance (AUD)": "총 잔액 (AUD)",
+  Available: "가용",
+  Protected: "보호",
+  Main: "메인",
+  "Safe to spend per day": "하루 안전 지출",
+  "no upcoming fixed payments": "예정된 고정 지출이 없어요",
+  "This month in": "이번 달 수입",
+  "This month out": "이번 달 지출",
+  "Left this month": "이번 달 남은 돈",
+  "income minus spending": "수입에서 지출을 뺀 값",
+  "spending more than you earned": "번 것보다 많이 썼어요",
+  "Next fixed payment ›": "다음 고정 지출 ›",
+  "Add one": "추가하기",
+  "tap to add rent / phone bill": "탭해서 월세·통신비 추가",
+  "Recent activity": "최근 거래",
+  "See all ›": "전체 보기 ›",
+  "No transactions yet.": "아직 거래가 없어요.",
+  "Money Feed": "머니 피드",
+  "Welcome to CashCow 🐮": "캐시카우에 오신 걸 환영해요 🐮",
+  "Let's set you up": "시작해볼까요",
+  "CashCow works out how much you can safely spend each day. To start, add your first account (like your bank) with its current balance.":
+    "캐시카우가 하루에 얼마나 안전하게 쓸 수 있는지 계산해드려요. 먼저 은행 계좌와 현재 잔액을 추가해보세요.",
+  "Add an account & balance": "계좌와 잔액 추가하기",
+  "Add your rent / phone bill as a fixed payment": "월세·통신비를 고정 지출로 추가하기",
+  "Log a coffee or lunch, then watch your safe to spend": "커피나 점심을 기록하고 '안전 지출'을 확인하기",
+  "Create my first account": "첫 계좌 만들기",
+
   // Language toggle
   Language: "언어",
 };
