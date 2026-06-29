@@ -8,8 +8,15 @@ import {
   categoryBreakdown,
   biggestVariableCategory,
   expenseTrend,
+  ratingSummary,
   formatMoney,
 } from "../utils/calculations";
+
+const RATING_META = [
+  { key: "good", icon: "✅", label: "Worth it", color: "#1A9D63" },
+  { key: "warn", icon: "⚠️", label: "Meh", color: "#B26A00" },
+  { key: "bad", icon: "❌", label: "Regret", color: "#FF7A59" },
+];
 import { colors as C, radius as R } from "../theme/tokens";
 
 const COLORS = C.cat;
@@ -25,6 +32,8 @@ export default function Insights({ transactions }) {
   const biggestVar = biggestVariableCategory(transactions);
   const trend = expenseTrend(transactions, period);
   const trendMax = Math.max(1, ...trend.map((b) => b.total));
+  const rating = ratingSummary(transactions);
+  const ratedCount = rating.good.count + rating.warn.count + rating.bad.count;
 
   const card = { background: C.card, border: `1px solid ${C.border}`, borderRadius: R.xl, padding: 20 };
 
@@ -47,6 +56,27 @@ export default function Insights({ transactions }) {
         <StatCard label="Spent this month" value={formatMoney(total)} tone="negative" />
         <StatCard label="Fixed vs flexible" value={`${Math.round((fixed / total) * 100)}% fixed`} hint={`${formatMoney(fixed)} fixed · ${formatMoney(variable)} flexible`} />
       </div>
+
+      {/* How spending felt (from ratings) */}
+      {ratedCount > 0 && (
+        <div style={card}>
+          <h2 style={{ margin: "0 0 14px", fontSize: 15, fontWeight: 800, color: C.ink }}>How your spending felt</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+            {RATING_META.map((r) => (
+              <div key={r.key} style={{ textAlign: "center", background: C.bg, borderRadius: R.md, padding: "12px 6px" }}>
+                <div style={{ fontSize: 22 }}>{r.icon}</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: r.color, marginTop: 4 }}>{formatMoney(rating[r.key].total)}</div>
+                <div style={{ fontSize: 11, color: C.muted }}>{r.label} · {rating[r.key].count}</div>
+              </div>
+            ))}
+          </div>
+          {rating.bad.total > 0 && (
+            <p style={{ margin: "12px 0 0", fontSize: 14, color: C.sub, lineHeight: 1.5 }}>
+              ❌ You marked <strong style={{ color: C.ink }}>{formatMoney(rating.bad.total)}</strong> as regretted spending ({rating.bad.count} purchase{rating.bad.count === 1 ? "" : "s"}). Worth a look next month!
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Spending trend with week / month / year toggle */}
       <div style={card}>

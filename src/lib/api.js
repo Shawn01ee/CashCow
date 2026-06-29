@@ -36,6 +36,7 @@ const toAppTx = (r) => ({
   memo: r.memo,
   date: r.transaction_date,
   isFixed: r.is_fixed,
+  rating: r.rating, // 'good' | 'warn' | 'bad' | null
 });
 const toAppFixed = (r) => ({
   id: r.id,
@@ -84,6 +85,7 @@ export async function insertTransaction(userId, tx) {
       memo: tx.memo,
       transaction_date: tx.date,
       is_fixed: tx.isFixed,
+      rating: tx.rating || null,
     })
     .select()
     .single();
@@ -104,6 +106,7 @@ export async function updateTransaction(tx) {
       memo: tx.memo,
       transaction_date: tx.date,
       is_fixed: tx.isFixed,
+      rating: tx.rating || null,
     })
     .eq("id", tx.id)
     .select()

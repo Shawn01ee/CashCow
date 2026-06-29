@@ -96,6 +96,24 @@ export function biggestVariableCategory(transactions, now = new Date()) {
   return sorted.length ? { category: sorted[0][0], total: sorted[0][1] } : null;
 }
 
+// Summarise how this month's expenses felt (from the rating field).
+// Returns { good, warn, bad } each as { count, total }.
+export function ratingSummary(transactions, now = new Date()) {
+  const expenses = thisMonthAudTx(transactions, now).filter((t) => t.type === "expense");
+  const sum = {
+    good: { count: 0, total: 0 },
+    warn: { count: 0, total: 0 },
+    bad: { count: 0, total: 0 },
+  };
+  for (const t of expenses) {
+    if (t.rating && sum[t.rating]) {
+      sum[t.rating].count += 1;
+      sum[t.rating].total += t.amount;
+    }
+  }
+  return sum;
+}
+
 // Spending trend buckets for the Insights bar chart.
 // period: "week" (last 7 days), "month" (last 6 months), "year" (last 5 years).
 // Transfers are excluded (only real expenses count).

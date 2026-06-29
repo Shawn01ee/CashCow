@@ -4,6 +4,7 @@ import { formatMoney } from "../utils/calculations";
 import { colors as C, radius as R } from "../theme/tokens";
 
 const FILTERS = ["All", "Income", "Expense", "Transfer", "Fixed", "Variable"];
+const RATING_ICON = { good: "✅", warn: "⚠️", bad: "❌" };
 
 export default function TransactionsList({ transactions, accounts, categories, onEdit, onDelete }) {
   const [filter, setFilter] = useState("All");
@@ -89,6 +90,7 @@ export default function TransactionsList({ transactions, accounts, categories, o
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {tx.memo || (isTransfer ? "Transfer" : tx.category)}
+                        {tx.rating && RATING_ICON[tx.rating] ? ` ${RATING_ICON[tx.rating]}` : ""}
                       </div>
                       <div style={{ fontSize: 12, color: C.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {isTransfer

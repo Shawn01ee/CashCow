@@ -8,6 +8,13 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
+// How you felt about a purchase (used on expenses).
+const RATINGS = [
+  { key: "good", icon: "✅", label: "Worth it", color: "#1A9D63", bg: "#E4F6EC" },
+  { key: "warn", icon: "⚠️", label: "Meh", color: "#B26A00", bg: "#FFF3D6" },
+  { key: "bad", icon: "❌", label: "Regret", color: "#FF7A59", bg: "#FFE9E2" },
+];
+
 export default function AddTransaction({ categories, accounts, editingTx, onAdd, onUpdate, onCancel, onNavigate }) {
   const toast = useToast();
   const isEditing = Boolean(editingTx);
@@ -24,8 +31,10 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
   const [memo, setMemo] = useState(editingTx?.memo || "");
   const [date, setDate] = useState(editingTx?.date || today());
   const [isFixed, setIsFixed] = useState(editingTx?.isFixed || false);
+  const [rating, setRating] = useState(editingTx?.rating || "");
 
   const isTransfer = type === "transfer";
+  const isExpense = type === "expense";
 
   const field = {
     width: "100%", borderRadius: R.md, border: `1.5px solid ${C.border}`,
@@ -80,6 +89,7 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
       memo: memo.trim(),
       date,
       isFixed: isTransfer ? false : isFixed,
+      rating: isExpense ? rating || null : null,
     };
     setSubmitting(true);
     try {
@@ -193,6 +203,29 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
             <button type="button" onClick={() => setIsFixed((v) => !v)} style={{ position: "relative", height: 26, width: 46, borderRadius: 999, border: "none", cursor: "pointer", background: isFixed ? C.green : "#D9CFBE", flexShrink: 0 }}>
               <span style={{ position: "absolute", top: 3, left: 3, height: 20, width: 20, borderRadius: "50%", background: "#fff", transition: "transform .15s", transform: isFixed ? "translateX(20px)" : "translateX(0)" }} />
             </button>
+          </div>
+        )}
+
+        {/* Rating — reflect on the purchase (expenses only, optional) */}
+        {isExpense && (
+          <div>
+            <label style={labelCls}>How did it feel? (optional)</label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+              {RATINGS.map((r) => {
+                const active = rating === r.key;
+                return (
+                  <button
+                    key={r.key}
+                    type="button"
+                    onClick={() => setRating(active ? "" : r.key)}
+                    style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, borderRadius: R.md, padding: "10px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", border: `1px solid ${active ? r.color + "55" : C.border}`, background: active ? r.bg : "#fff", color: active ? r.color : C.sub }}
+                  >
+                    <span style={{ fontSize: 18 }}>{r.icon}</span>
+                    {r.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
 
