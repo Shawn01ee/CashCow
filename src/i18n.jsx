@@ -80,6 +80,28 @@ const ko = {
   "Log a coffee or lunch, then watch your safe to spend": "커피나 점심을 기록하고 '안전 지출'을 확인하기",
   "Create my first account": "첫 계좌 만들기",
 
+  // Accounts
+  Close: "닫기",
+  "+ Add": "+ 추가",
+  "Total AUD across all accounts:": "전체 계좌 AUD 합계:",
+  "Account name (e.g. Wise)": "계좌 이름 (예: 토스뱅크)",
+  "Starting balance": "시작 잔액",
+  "Add account": "계좌 추가",
+  PROTECTED: "보호됨",
+  account: "계좌",
+  "Set as main": "메인으로 설정",
+  "Account name": "계좌 이름",
+  Balance: "잔액",
+  "Protected money": "보호된 돈",
+  "Set aside, excluded from safe to spend.": "따로 빼둔 돈, 안전 지출에서 제외돼요.",
+  "What's it for? e.g. Rent reserve": "용도가 뭔가요? 예: 월세 보관용",
+  Cancel: "취소",
+  Save: "저장",
+  Keep: "유지",
+  Delete: "삭제",
+  "Delete account": "계좌 삭제",
+  Edit: "수정",
+
   // Language toggle
   Language: "언어",
 };

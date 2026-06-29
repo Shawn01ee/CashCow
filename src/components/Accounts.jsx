@@ -53,28 +53,28 @@ export default function Accounts({ accounts, onAddAccount, onSetMain, onEditAcco
   return (
     <div style={{ animation: "ccUp .35s ease", display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.ink }}>Accounts</h1>
+        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.ink }}>{t("Accounts")}</h1>
         <button onClick={() => setShowForm((v) => !v)} style={{ ...primaryBtn, fontSize: 14, padding: "10px 16px" }}>
-          {showForm ? "Close" : "+ Add"}
+          {showForm ? t("Close") : t("+ Add")}
         </button>
       </div>
 
       <p style={{ margin: 0, fontSize: 14, color: C.sub }}>
-        Total AUD across all accounts:{" "}
+        {t("Total AUD across all accounts:")}{" "}
         <strong style={{ color: C.ink }}>{formatMoney(totalAud)}</strong>
       </p>
 
       {showForm && (
         <form onSubmit={handleSubmit} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: R.xl, padding: 18, display: "flex", flexDirection: "column", gap: 12 }}>
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Account name (e.g. Wise)" style={field} />
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("Account name (e.g. Wise)")} style={field} />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             <select value={currency} onChange={(e) => setCurrency(e.target.value)} style={field}>
               <option value="AUD">AUD</option>
               <option value="KRW">KRW</option>
             </select>
-            <input type="number" step="0.01" value={balance} onChange={(e) => setBalance(e.target.value)} placeholder="Starting balance" style={field} />
+            <input type="number" step="0.01" value={balance} onChange={(e) => setBalance(e.target.value)} placeholder={t("Starting balance")} style={field} />
           </div>
-          <button type="submit" style={{ ...primaryBtn, fontSize: 14, padding: "11px" }}>Add account</button>
+          <button type="submit" style={{ ...primaryBtn, fontSize: 14, padding: "11px" }}>{t("Add account")}</button>
         </form>
       )}
 
