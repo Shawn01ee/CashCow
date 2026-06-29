@@ -13,6 +13,11 @@ bill?"*
 Sign up with any email and you get your own private space. Your data is never
 visible to other users (enforced by Postgres Row Level Security).
 
+### 📝 What's new
+
+Latest: **[v0.7.0 — Purchase ratings](https://github.com/Shawn01ee/CashCow/releases/tag/v0.7.0)**.
+See the full [CHANGELOG](CHANGELOG.md) or [all releases](https://github.com/Shawn01ee/CashCow/releases).
+
 ---
 
 ## ✨ Features

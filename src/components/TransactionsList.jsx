@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { formatMoney } from "../utils/calculations";
 import { colors as C, radius as R } from "../theme/tokens";
+import MonthNav from "./MonthNav";
 
 const FILTERS = ["All", "Income", "Expense", "Transfer", "Fixed", "Variable"];
 const RATING_CHIPS = [
@@ -10,7 +11,7 @@ const RATING_CHIPS = [
   { key: "bad", icon: "❌", bg: "#FFE9E2", border: "#FF7A59" },
 ];
 
-export default function TransactionsList({ transactions, accounts, categories, onEdit, onDelete, onRate }) {
+export default function TransactionsList({ transactions, accounts, categories, monthDate = new Date(), onMonthChange, onEdit, onDelete, onRate }) {
   const [filter, setFilter] = useState("All");
   const [accountFilter, setAccountFilter] = useState("all");
   const [pendingDelete, setPendingDelete] = useState(null);
@@ -23,7 +24,14 @@ export default function TransactionsList({ transactions, accounts, categories, o
     setPendingDelete(null);
   }
 
+  const inSelectedMonth = (dateStr) => {
+    const d = new Date(dateStr);
+    return d.getFullYear() === monthDate.getFullYear() && d.getMonth() === monthDate.getMonth();
+  };
+
   const filtered = transactions.filter((t) => {
+    // only the selected month
+    if (!inSelectedMonth(t.date)) return false;
     // type / fixed filter
     if (filter === "Income" && t.type !== "income") return false;
     if (filter === "Expense" && t.type !== "expense") return false;
@@ -46,7 +54,10 @@ export default function TransactionsList({ transactions, accounts, categories, o
 
   return (
     <div style={{ animation: "ccUp .35s ease", display: "flex", flexDirection: "column", gap: 16 }}>
-      <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.ink }}>Activity</h1>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.ink }}>Activity</h1>
+        {onMonthChange && <MonthNav monthDate={monthDate} onChange={onMonthChange} />}
+      </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
         {FILTERS.map((f) => {

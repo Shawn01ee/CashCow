@@ -78,6 +78,8 @@ function CashCowApp({ user }) {
 
   const [page, setPage] = useState("home");
   const [editingTx, setEditingTx] = useState(null);
+  // Which month the Activity & Insights screens are showing.
+  const [selectedMonth, setSelectedMonth] = useState(() => new Date());
 
   const [accounts, setAccounts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -342,13 +344,21 @@ function CashCowApp({ user }) {
             transactions={transactions}
             accounts={accounts}
             categories={categories}
+            monthDate={selectedMonth}
+            onMonthChange={setSelectedMonth}
             onEdit={startEdit}
             onDelete={deleteTransaction}
             onRate={rateTransaction}
           />
         );
       case "insights":
-        return <Insights transactions={transactions} />;
+        return (
+          <Insights
+            transactions={transactions}
+            monthDate={selectedMonth}
+            onMonthChange={setSelectedMonth}
+          />
+        );
       case "fixed":
         return (
           <FixedPayments

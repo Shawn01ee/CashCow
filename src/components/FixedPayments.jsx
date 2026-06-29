@@ -9,6 +9,15 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
+// How much a payment costs per month (AUD only; one-off payments don't recur).
+function monthlyEquivalent(fp) {
+  if (fp.currency !== "AUD") return 0;
+  if (fp.frequency === "weekly") return (fp.amount * 52) / 12;
+  if (fp.frequency === "fortnightly") return (fp.amount * 26) / 12;
+  if (fp.frequency === "monthly") return fp.amount;
+  return 0; // once
+}
+
 export default function FixedPayments({ fixedPayments, accounts, categories, onAdd, onUpdate, onDelete, onMarkPaid, onNavigate }) {
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -61,6 +70,12 @@ export default function FixedPayments({ fixedPayments, accounts, categories, onA
 
   const sorted = [...fixedPayments].sort((a, b) => new Date(a.nextDueDate) - new Date(b.nextDueDate));
 
+  // Subscription-style summary (AUD recurring only).
+  const recurring = fixedPayments.filter((fp) => fp.frequency !== "once" && fp.currency === "AUD");
+  const monthlyTotal = recurring.reduce((s, fp) => s + monthlyEquivalent(fp), 0);
+  const yearlyTotal = monthlyTotal * 12;
+  const soonCount = fixedPayments.filter((fp) => daysUntil(fp.nextDueDate) <= 7).length;
+
   return (
     <div style={{ animation: "ccUp .35s ease", display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -72,6 +87,24 @@ export default function FixedPayments({ fixedPayments, accounts, categories, onA
       <p style={{ margin: 0, fontSize: 14, color: C.sub, lineHeight: 1.5 }}>
         Rent, phone, subscriptions: the bills you can't skip. Tap "Paid" when one goes out and CashCow logs it and moves the date forward.
       </p>
+
+      {/* Subscription-style summary */}
+      {monthlyTotal > 0 && (
+        <div style={{ background: C.ink, borderRadius: R["2xl"], padding: "22px 24px", color: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 13, color: "#D9CFBE", fontWeight: 600 }}>Recurring per month</div>
+            <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-.02em", margin: "4px 0" }}>{formatMoney(monthlyTotal)}</div>
+            <div style={{ fontSize: 13, color: C.butter, fontWeight: 700 }}>
+              {recurring.length} recurring · ~{formatMoney(yearlyTotal)}/year
+            </div>
+          </div>
+          {soonCount > 0 && (
+            <div style={{ background: C.butter, color: "#5A4000", padding: "8px 14px", borderRadius: R.md, fontSize: 13, fontWeight: 800, whiteSpace: "nowrap" }}>
+              {soonCount} due soon
+            </div>
+          )}
+        </div>
+      )}
 
       {showForm && (
         <form onSubmit={handleSubmit} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: R.xl, padding: 18, display: "flex", flexDirection: "column", gap: 12 }}>

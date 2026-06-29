@@ -2,6 +2,13 @@
 
 All notable changes to CashCow. Newest first.
 
+## v0.8.0 — Months & subscriptions (2026-06-30)
+- **Month selector** (`‹ June 2026 ›`) on Activity and Insights — page through
+  any month and the lists, charts, category breakdown and ratings all follow it.
+- **Subscription-style Fixed payments**: a header showing your total recurring
+  cost per month, how many you have, the rough yearly total, and how many are
+  due within 7 days.
+
 ## v0.7.0 — Purchase ratings (2026-06-29)
 - **Rate your spending**: mark expenses ✅ Worth it / ⚠️ Meh / ❌ Regret.
 - **Quick-rate in Activity**: tap the rating chips right on each expense row;

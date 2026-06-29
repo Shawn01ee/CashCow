@@ -12,37 +12,47 @@ import {
   formatMoney,
 } from "../utils/calculations";
 
+import { colors as C, radius as R } from "../theme/tokens";
+import MonthNav from "./MonthNav";
+
 const RATING_META = [
   { key: "good", icon: "✅", label: "Worth it", color: "#1A9D63" },
   { key: "warn", icon: "⚠️", label: "Meh", color: "#B26A00" },
   { key: "bad", icon: "❌", label: "Regret", color: "#FF7A59" },
 ];
-import { colors as C, radius as R } from "../theme/tokens";
 
 const COLORS = C.cat;
 const PERIODS = [["week", "Week"], ["month", "Month"], ["year", "Year"]];
 
-export default function Insights({ transactions }) {
+export default function Insights({ transactions, monthDate = new Date(), onMonthChange }) {
   const [period, setPeriod] = useState("month");
 
-  const total = monthlyExpense(transactions);
-  const { fixed, variable } = fixedVsVariable(transactions);
-  const breakdown = categoryBreakdown(transactions);
+  // All month-based stats use the selected month.
+  const total = monthlyExpense(transactions, monthDate);
+  const { fixed, variable } = fixedVsVariable(transactions, monthDate);
+  const breakdown = categoryBreakdown(transactions, monthDate);
   const biggest = breakdown[0] || null;
-  const biggestVar = biggestVariableCategory(transactions);
-  const trend = expenseTrend(transactions, period);
+  const biggestVar = biggestVariableCategory(transactions, monthDate);
+  const trend = expenseTrend(transactions, period, monthDate);
   const trendMax = Math.max(1, ...trend.map((b) => b.total));
-  const rating = ratingSummary(transactions);
+  const rating = ratingSummary(transactions, monthDate);
   const ratedCount = rating.good.count + rating.warn.count + rating.bad.count;
 
   const card = { background: C.card, border: `1px solid ${C.border}`, borderRadius: R.xl, padding: 20 };
 
+  const Header = (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+      <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.ink }}>Insights</h1>
+      {onMonthChange && <MonthNav monthDate={monthDate} onChange={onMonthChange} />}
+    </div>
+  );
+
   if (total === 0) {
     return (
       <div style={{ animation: "ccUp .35s ease", display: "flex", flexDirection: "column", gap: 16 }}>
-        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.ink }}>Insights</h1>
+        {Header}
         <p style={{ fontSize: 14, color: C.muted, margin: 0 }}>
-          No spending recorded this month yet. Add a few transactions and your patterns will show up here.
+          No spending recorded for this month. Add a few transactions or pick another month.
         </p>
       </div>
     );
@@ -50,7 +60,7 @@ export default function Insights({ transactions }) {
 
   return (
     <div style={{ animation: "ccUp .35s ease", display: "flex", flexDirection: "column", gap: 16 }}>
-      <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.ink }}>Insights</h1>
+      {Header}
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <StatCard label="Spent this month" value={formatMoney(total)} tone="negative" />
