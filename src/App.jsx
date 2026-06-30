@@ -63,9 +63,12 @@ function CenterMessage({ text }) {
 // Move a due date forward by one cycle. "once" payments have no next date.
 function advanceDueDate(dateStr, frequency) {
   const d = new Date(dateStr);
-  if (frequency === "weekly") d.setDate(d.getDate() + 7);
+  if (frequency === "weekly")       d.setDate(d.getDate() + 7);
   else if (frequency === "fortnightly") d.setDate(d.getDate() + 14);
-  else if (frequency === "monthly") d.setMonth(d.getMonth() + 1);
+  else if (frequency === "4-weekly")  d.setDate(d.getDate() + 28);
+  else if (frequency === "8-weekly")  d.setDate(d.getDate() + 56);
+  else if (frequency === "monthly")  d.setMonth(d.getMonth() + 1);
+  else if (frequency === "yearly")   d.setFullYear(d.getFullYear() + 1);
   return d.toISOString().slice(0, 10);
 }
 

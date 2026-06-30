@@ -202,9 +202,12 @@ const ko = {
   "No category": "카테고리 없음",
   "no account": "계좌 없음",
   Paid: "결제완료",
-  weekly: "주간",
-  fortnightly: "격주",
-  monthly: "월간",
+  weekly: "매주 (1주)",
+  fortnightly: "격주 (2주)",
+  "4-weekly": "4주마다",
+  "8-weekly": "8주마다",
+  monthly: "매월",
+  yearly: "연간",
   once: "일회",
 
   // Insights

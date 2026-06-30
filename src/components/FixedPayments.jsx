@@ -4,7 +4,7 @@ import { formatMoney, daysUntil } from "../utils/calculations";
 import { colors as C, radius as R } from "../theme/tokens";
 import { useLang } from "../i18n";
 
-const FREQUENCIES = ["weekly", "fortnightly", "monthly", "once"];
+const FREQUENCIES = ["weekly", "fortnightly", "4-weekly", "8-weekly", "monthly", "yearly", "once"];
 
 function today() {
   return new Date().toISOString().slice(0, 10);
@@ -13,9 +13,12 @@ function today() {
 // How much a payment costs per month (AUD only; one-off payments don't recur).
 function monthlyEquivalent(fp) {
   if (fp.currency !== "AUD") return 0;
-  if (fp.frequency === "weekly") return (fp.amount * 52) / 12;
+  if (fp.frequency === "weekly")      return (fp.amount * 52) / 12;
   if (fp.frequency === "fortnightly") return (fp.amount * 26) / 12;
-  if (fp.frequency === "monthly") return fp.amount;
+  if (fp.frequency === "4-weekly")    return (fp.amount * 13) / 12;
+  if (fp.frequency === "8-weekly")    return (fp.amount * 6.5) / 12;
+  if (fp.frequency === "monthly")     return fp.amount;
+  if (fp.frequency === "yearly")      return fp.amount / 12;
   return 0; // once
 }
 

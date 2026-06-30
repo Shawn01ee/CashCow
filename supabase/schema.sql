@@ -71,7 +71,7 @@ create table if not exists fixed_payments (
   amount numeric not null check (amount >= 0),
   currency text not null default 'AUD',
   category text,
-  frequency text not null check (frequency in ('weekly','fortnightly','monthly','once')),
+  frequency text not null check (frequency in ('weekly','fortnightly','4-weekly','8-weekly','monthly','yearly','once')),
   next_due_date date not null,
   kind text not null default 'expense' check (kind in ('expense','income')),
   created_at timestamptz default now()
@@ -79,6 +79,9 @@ create table if not exists fixed_payments (
 
 -- Backfill: existing rows all become expenses.
 alter table fixed_payments add column if not exists kind text not null default 'expense' check (kind in ('expense','income'));
+-- Expand frequency options (drop old check, add new one).
+alter table fixed_payments drop constraint if exists fixed_payments_frequency_check;
+alter table fixed_payments add constraint fixed_payments_frequency_check check (frequency in ('weekly','fortnightly','4-weekly','8-weekly','monthly','yearly','once'));
 
 -- Helpful indexes for "all rows for this user" lookups.
 create index if not exists idx_accounts_user on accounts(user_id);
