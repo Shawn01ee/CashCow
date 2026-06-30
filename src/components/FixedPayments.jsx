@@ -4,7 +4,7 @@ import { formatMoney, daysUntil } from "../utils/calculations";
 import { colors as C, radius as R } from "../theme/tokens";
 import { useLang } from "../i18n";
 
-const FREQUENCIES = ["weekly", "fortnightly", "4-weekly", "8-weekly", "monthly", "yearly", "once"];
+const FREQUENCIES = ["weekly", "fortnightly", "8-weekly", "monthly", "yearly"];
 
 function today() {
   return new Date().toISOString().slice(0, 10);
