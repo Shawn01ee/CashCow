@@ -68,46 +68,69 @@ function WeatherBar({ lang }) {
   const ss = String(time.getSeconds()).padStart(2, "0");
   const ampm = hh >= 12 ? "PM" : "AM";
   const h12 = String(hh % 12 || 12).padStart(2, "0");
-  const timeStr = `${h12}:${mm}:${ss} ${ampm}`;
 
   const day = time.getDay();
   const date = time.getDate();
   const month = time.getMonth();
   const year = time.getFullYear();
 
+  const dayStr = ko ? DAYS_KO[day] : DAYS_EN[day];
   const dateStr = ko
-    ? `${year}년 ${month + 1}월 ${date}일 ${DAYS_KO[day]}`
-    : `${DAYS_EN[day]}, ${MONTHS_EN[month]} ${date}, ${year}`;
-
-  const dot = <span style={{ color: C.border, margin: "0 2px" }}>·</span>;
+    ? `${year}년 ${month + 1}월 ${date}일`
+    : `${MONTHS_EN[month]} ${date}, ${year}`;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 5, padding: "2px 2px 0" }}>
-      {/* Date line */}
-      <div style={{
-        fontSize: 18,
-        fontWeight: 700,
-        color: C.ink,
-        letterSpacing: "-.02em",
-        lineHeight: 1.2,
-      }}>
-        {dateStr}
-      </div>
-      {/* Location · Time · Weather line */}
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        flexWrap: "wrap",
-        fontSize: 13,
-        fontWeight: 500,
-        color: C.sub,
-        fontVariantNumeric: "tabular-nums",
-        letterSpacing: ".01em",
-        gap: 2,
-      }}>
-        {info && <><span style={{ fontWeight: 600 }}>{info.city}{info.country ? `, ${info.country}` : ""}</span>{dot}</>}
-        <span>{timeStr}</span>
-        {info && <>{dot}<span style={{ fontSize: 15 }}>{info.icon}</span><span> {info.temp}°C</span></>}
+    <div style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 18,
+      background: "linear-gradient(135deg, #fffbf0 0%, #f5f0e8 100%)",
+      border: `1px solid ${C.border}`,
+      borderRadius: R.xl,
+      padding: "16px 20px",
+    }}>
+      {/* Mascot */}
+      <img
+        src="/mascot.png"
+        alt="CashCow"
+        style={{ width: 64, height: 64, objectFit: "contain", flexShrink: 0 }}
+      />
+
+      {/* Text block */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Day of week */}
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.green, textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 1 }}>
+          {dayStr}
+        </div>
+        {/* Date */}
+        <div style={{ fontSize: 20, fontWeight: 800, color: C.ink, letterSpacing: "-.03em", lineHeight: 1.1, marginBottom: 6 }}>
+          {dateStr}
+        </div>
+        {/* Time + weather row */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          fontSize: 13,
+          fontWeight: 500,
+          color: C.sub,
+          fontVariantNumeric: "tabular-nums",
+          flexWrap: "wrap",
+        }}>
+          <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-.02em", color: C.ink, fontVariantNumeric: "tabular-nums" }}>
+            {h12}:{mm}<span style={{ fontSize: 14, fontWeight: 600, color: C.sub }}>{ss}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: C.sub, marginLeft: 4 }}>{ampm}</span>
+          </span>
+          {info && (
+            <>
+              <span style={{ color: C.border }}>·</span>
+              <span style={{ fontSize: 16 }}>{info.icon}</span>
+              <span style={{ fontWeight: 600, color: C.sub }}>{info.temp}°C</span>
+              <span style={{ color: C.border }}>·</span>
+              <span style={{ color: C.muted }}>{info.city}{info.country ? `, ${info.country}` : ""}</span>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -146,7 +169,7 @@ export default function Dashboard({
       <WeatherBar lang={lang} />
       {/* Hero: total balance */}
       <div style={{ background: C.green, borderRadius: R["2xl"], padding: "26px 28px", color: "#fff", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", right: 22, top: 14, fontSize: 90, opacity: 0.16 }}>🐮</div>
+        <img src="/mascot.png" alt="" style={{ position: "absolute", right: 12, top: 10, width: 90, height: 90, objectFit: "contain", opacity: 0.22, pointerEvents: "none" }} />
         <div style={{ fontSize: 14, opacity: 0.92, fontWeight: 600 }}>{t("Total balance (AUD)")}</div>
         <div style={{ fontSize: 42, fontWeight: 800, letterSpacing: "-.03em", margin: "6px 0 12px" }}>
           {formatMoney(totalAud)}
