@@ -183,11 +183,29 @@ export function nextFixedPayment(fixedPayments, now = new Date()) {
 }
 
 // Find the next upcoming fixed income (soonest future date).
+// If the stored nextDueDate is in the past (user hasn't hit "+ Received" yet),
+// walk the frequency forward until we find the next real future date.
 export function nextFixedIncome(fixedPayments, now = new Date()) {
-  const upcoming = fixedPayments
-    .filter((fp) => fp.kind === "income" && new Date(fp.nextDueDate) >= startOfDay(now))
-    .sort((a, b) => new Date(a.nextDueDate) - new Date(b.nextDueDate));
-  return upcoming[0] || null;
+  const today = startOfDay(now);
+
+  const withNextDate = fixedPayments
+    .filter((fp) => fp.kind === "income")
+    .map((fp) => {
+      let d = startOfDay(new Date(fp.nextDueDate));
+      while (d < today) {
+        if (fp.frequency === "weekly")          d.setDate(d.getDate() + 7);
+        else if (fp.frequency === "fortnightly") d.setDate(d.getDate() + 14);
+        else if (fp.frequency === "8-weekly")    d.setDate(d.getDate() + 56);
+        else if (fp.frequency === "monthly")     d.setMonth(d.getMonth() + 1);
+        else if (fp.frequency === "yearly")      d.setFullYear(d.getFullYear() + 1);
+        else break; // "once" that's past due — skip
+      }
+      if (d < today) return null;
+      return { ...fp, nextDueDate: d.toISOString().slice(0, 10) };
+    })
+    .filter(Boolean);
+
+  return withNextDate.sort((a, b) => new Date(a.nextDueDate) - new Date(b.nextDueDate))[0] || null;
 }
 
 // Whole number of days from now until a date string (never negative).
