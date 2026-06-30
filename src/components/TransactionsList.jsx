@@ -3,6 +3,7 @@ import { useState } from "react";
 import { formatMoney } from "../utils/calculations";
 import { colors as C, radius as R } from "../theme/tokens";
 import MonthNav from "./MonthNav";
+import { useLang } from "../i18n";
 
 const FILTERS = ["All", "Income", "Expense", "Transfer", "Fixed", "Variable"];
 const RATING_CHIPS = [
@@ -12,6 +13,7 @@ const RATING_CHIPS = [
 ];
 
 export default function TransactionsList({ transactions, accounts, categories, monthDate = new Date(), onMonthChange, onEdit, onDelete, onRate }) {
+  const { t, lang } = useLang();
   const [filter, setFilter] = useState("All");
   const [accountFilter, setAccountFilter] = useState("all");
   const [pendingDelete, setPendingDelete] = useState(null);
@@ -55,7 +57,7 @@ export default function TransactionsList({ transactions, accounts, categories, m
   return (
     <div style={{ animation: "ccUp .35s ease", display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.ink }}>Activity</h1>
+        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.ink }}>{t("Activity")}</h1>
         {onMonthChange && <MonthNav monthDate={monthDate} onChange={onMonthChange} />}
       </div>
 
@@ -68,7 +70,7 @@ export default function TransactionsList({ transactions, accounts, categories, m
               onClick={() => setFilter(f)}
               style={{ padding: "8px 16px", borderRadius: R.full, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", border: `1px solid ${active ? "transparent" : C.border}`, background: active ? C.ink : "#fff", color: active ? "#fff" : C.sub }}
             >
-              {f}
+              {t(f)}
             </button>
           );
         })}
@@ -81,7 +83,7 @@ export default function TransactionsList({ transactions, accounts, categories, m
           onChange={(e) => setAccountFilter(e.target.value)}
           style={{ alignSelf: "flex-start", borderRadius: R.full, border: `1px solid ${C.border}`, background: "#fff", padding: "8px 14px", fontSize: 13, fontWeight: 700, color: C.ink, fontFamily: "inherit", cursor: "pointer" }}
         >
-          <option value="all">All accounts</option>
+          <option value="all">{t("All accounts")}</option>
           {accounts.map((a) => (
             <option key={a.id} value={a.id}>{a.name}</option>
           ))}
@@ -89,7 +91,7 @@ export default function TransactionsList({ transactions, accounts, categories, m
       )}
 
       {sortedDates.length === 0 ? (
-        <p style={{ fontSize: 14, color: C.muted, margin: 0 }}>No transactions match this filter.</p>
+        <p style={{ fontSize: 14, color: C.muted, margin: 0 }}>{t("No transactions match this filter.")}</p>
       ) : (
         sortedDates.map((date) => (
           <section key={date}>
@@ -106,12 +108,12 @@ export default function TransactionsList({ transactions, accounts, categories, m
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {tx.memo || (isTransfer ? "Transfer" : tx.category)}
+                          {isTransfer ? (tx.memo || t("Transfer")) : (tx.memo || t(tx.category))}
                         </div>
                         <div style={{ fontSize: 12, color: C.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {isTransfer
                             ? `${accountName(tx.accountId)} → ${accountName(tx.toAccountId)}`
-                            : `${tx.category} · ${accountName(tx.accountId)} · ${tx.isFixed ? "Fixed" : "Variable"}`}
+                            : `${t(tx.category)} · ${accountName(tx.accountId)} · ${tx.isFixed ? t("Fixed") : t("Variable")}`}
                         </div>
                       </div>
                       <div style={{ fontSize: 15, fontWeight: 800, whiteSpace: "nowrap", color: isTransfer ? "#4666CC" : tx.type === "income" ? C.greenDark : C.ink }}>
@@ -126,7 +128,7 @@ export default function TransactionsList({ transactions, accounts, categories, m
                     {/* Inline quick-rating for expenses */}
                     {isExpense && (
                       <div style={{ display: "flex", alignItems: "center", gap: 6, paddingLeft: 56, paddingBottom: 12 }}>
-                        {!tx.rating && <span style={{ fontSize: 11, color: C.muted, marginRight: 2 }}>Worth it?</span>}
+                        {!tx.rating && <span style={{ fontSize: 11, color: C.muted, marginRight: 2 }}>{t("Worth it?")}</span>}
                         {RATING_CHIPS.map((r) => {
                           const active = tx.rating === r.key;
                           return (
@@ -156,13 +158,13 @@ export default function TransactionsList({ transactions, accounts, categories, m
           style={{ position: "fixed", inset: 0, zIndex: 40, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(42,37,32,.45)", padding: 16 }}
         >
           <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 360, background: C.card, borderRadius: R.xl, padding: 20, boxShadow: "0 20px 60px rgba(70,55,25,.25)" }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: C.ink }}>Delete this transaction?</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: C.ink }}>{t("Delete this transaction?")}</div>
             <div style={{ fontSize: 12, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
-              "{pendingDelete.memo || pendingDelete.category}" · {pendingDelete.type === "income" ? "+" : "−"}{formatMoney(pendingDelete.amount, pendingDelete.currency)}. The account balance will be adjusted back.
+              "{pendingDelete.memo || pendingDelete.category}" · {pendingDelete.type === "income" ? "+" : "−"}{formatMoney(pendingDelete.amount, pendingDelete.currency)}. {t("The account balance will be adjusted back.")}
             </div>
             <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-              <button onClick={() => setPendingDelete(null)} style={{ flex: 1, border: `1px solid ${C.border}`, background: "#fff", color: C.sub, borderRadius: R.md, padding: "10px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-              <button onClick={confirmDelete} style={{ flex: 1, border: "none", background: C.coral, color: "#fff", borderRadius: R.md, padding: "10px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Delete</button>
+              <button onClick={() => setPendingDelete(null)} style={{ flex: 1, border: `1px solid ${C.border}`, background: "#fff", color: C.sub, borderRadius: R.md, padding: "10px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>{t("Cancel")}</button>
+              <button onClick={confirmDelete} style={{ flex: 1, border: "none", background: C.coral, color: "#fff", borderRadius: R.md, padding: "10px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>{t("Delete")}</button>
             </div>
           </div>
         </div>

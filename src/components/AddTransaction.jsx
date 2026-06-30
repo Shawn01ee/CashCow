@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { quickAdds } from "../data/sampleData";
 import { useToast } from "./Toast";
+import { useLang } from "../i18n";
 import { colors as C, radius as R, shadow as S } from "../theme/tokens";
 
 function today() {
@@ -17,6 +18,7 @@ const RATINGS = [
 
 export default function AddTransaction({ categories, accounts, editingTx, onAdd, onUpdate, onCancel, onNavigate }) {
   const toast = useToast();
+  const { t } = useLang();
   const isEditing = Boolean(editingTx);
   const [submitting, setSubmitting] = useState(false);
 
@@ -46,13 +48,13 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
   if (accounts.length === 0) {
     return (
       <div style={{ animation: "ccUp .35s ease", display: "flex", flexDirection: "column", gap: 16 }}>
-        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.ink }}>Add transaction</h1>
+        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.ink }}>{t("Add transaction")}</h1>
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: R.xl, padding: 24, textAlign: "center" }}>
           <div style={{ fontSize: 30 }}>🏦</div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, marginTop: 8 }}>Add an account first</div>
-          <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>Transactions go in and out of an account, so let's create one.</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, marginTop: 8 }}>{t("Add an account first")}</div>
+          <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>{t("Transactions go in and out of an account, so let's create one.")}</div>
           <button onClick={() => onNavigate("accounts")} style={{ marginTop: 16, border: "none", background: C.green, color: "#fff", borderRadius: R.md, padding: "10px 18px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-            Go to Accounts
+            {t("Go to Accounts")}
           </button>
         </div>
       </div>
@@ -71,11 +73,11 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
   async function handleSubmit(e) {
     e.preventDefault();
     const numericAmount = parseFloat(amount);
-    if (!numericAmount || numericAmount <= 0) { toast.error("Please enter an amount greater than 0."); return; }
+    if (!numericAmount || numericAmount <= 0) { toast.error(t("Please enter an amount greater than 0.")); return; }
     if (isTransfer) {
-      if (!toAccountId || accountId === toAccountId) { toast.error("Pick two different accounts."); return; }
+      if (!toAccountId || accountId === toAccountId) { toast.error(t("Pick two different accounts.")); return; }
     } else if (!category) {
-      toast.error("Please pick a category."); return;
+      toast.error(t("Please pick a category.")); return;
     }
 
     const tx = {
@@ -103,16 +105,16 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
   return (
     <div style={{ animation: "ccUp .35s ease", display: "flex", flexDirection: "column", gap: 18 }}>
       <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.ink }}>
-        {isEditing ? "Edit transaction" : "Add transaction"}
+        {isEditing ? t("Edit transaction") : t("Add transaction")}
       </h1>
 
       {!isEditing && !isTransfer && (
         <div>
-          <p style={labelCls}>Quick add</p>
+          <p style={labelCls}>{t("Quick add")}</p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             {quickAdds.map((q) => (
               <button key={q.label} type="button" onClick={() => applyQuickAdd(q)} style={{ display: "flex", alignItems: "center", gap: 6, border: `1px solid ${C.border}`, background: "#fff", borderRadius: R.full, padding: "8px 14px", fontSize: 13, color: C.ink, cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}>
-                <span>{q.icon}</span> {q.label}
+                <span>{q.icon}</span> {t(q.label)}
               </button>
             ))}
           </div>
@@ -133,9 +135,9 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
                 key={key}
                 type="button"
                 onClick={() => { setType(key); setCategory(""); }}
-                style={{ textTransform: "capitalize", borderRadius: R.md, padding: "11px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", border: `1px solid ${active ? color + "55" : C.border}`, background: active ? bg : "#fff", color: active ? color : C.sub }}
+                style={{ borderRadius: R.md, padding: "11px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", border: `1px solid ${active ? color + "55" : C.border}`, background: active ? bg : "#fff", color: active ? color : C.sub }}
               >
-                {key}
+                {t(key)}
               </button>
             );
           })}
@@ -143,11 +145,11 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
 
         <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 8 }}>
           <div>
-            <label style={labelCls}>Amount</label>
+            <label style={labelCls}>{t("Amount")}</label>
             <input type="number" step="0.01" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" style={field} />
           </div>
           <div>
-            <label style={labelCls}>Currency</label>
+            <label style={labelCls}>{t("Currency")}</label>
             <select value={currency} onChange={(e) => setCurrency(e.target.value)} style={field}>
               <option value="AUD">AUD</option>
               <option value="KRW">KRW</option>
@@ -157,16 +159,16 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
 
         {!isTransfer && (
           <div>
-            <label style={labelCls}>Category</label>
+            <label style={labelCls}>{t("Category")}</label>
             <select value={category} onChange={(e) => setCategory(e.target.value)} style={field}>
-              <option value="">Select a category…</option>
-              {visibleCategories.map((c) => (<option key={c.id} value={c.name}>{c.icon} {c.name}</option>))}
+              <option value="">{t("Select a category…")}</option>
+              {visibleCategories.map((c) => (<option key={c.id} value={c.name}>{c.icon} {t(c.name)}</option>))}
             </select>
           </div>
         )}
 
         <div>
-          <label style={labelCls}>{isTransfer ? "From account" : "Account"}</label>
+          <label style={labelCls}>{isTransfer ? t("From account") : t("Account")}</label>
           <select value={accountId} onChange={(e) => setAccountId(e.target.value)} style={field}>
             {accounts.map((a) => (<option key={a.id} value={a.id}>{a.name} ({a.currency})</option>))}
           </select>
@@ -174,9 +176,9 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
 
         {isTransfer && (
           <div>
-            <label style={labelCls}>To account</label>
+            <label style={labelCls}>{t("To account")}</label>
             <select value={toAccountId} onChange={(e) => setToAccountId(e.target.value)} style={field}>
-              <option value="">Select an account…</option>
+              <option value="">{t("Select an account…")}</option>
               {accounts.filter((a) => a.id !== accountId).map((a) => (
                 <option key={a.id} value={a.id}>{a.name} ({a.currency})</option>
               ))}
@@ -185,11 +187,11 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
         )}
 
         <div>
-          <label style={labelCls}>Memo</label>
-          <input type="text" value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="e.g. Iced latte" style={field} />
+          <label style={labelCls}>{t("Memo")}</label>
+          <input type="text" value={memo} onChange={(e) => setMemo(e.target.value)} placeholder={t("e.g. Iced latte")} style={field} />
         </div>
         <div>
-          <label style={labelCls}>Date</label>
+          <label style={labelCls}>{t("Date")}</label>
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={field} />
         </div>
 
@@ -197,8 +199,8 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
         {!isTransfer && (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: C.card, border: `1px solid ${C.border}`, borderRadius: R.md, padding: "12px 14px" }}>
             <div>
-              <div style={{ fontSize: 14, color: C.ink, fontWeight: 700 }}>Fixed payment?</div>
-              <div style={{ fontSize: 12, color: C.muted }}>Rent, phone, subscriptions: things you can't easily skip.</div>
+              <div style={{ fontSize: 14, color: C.ink, fontWeight: 700 }}>{t("Fixed payment?")}</div>
+              <div style={{ fontSize: 12, color: C.muted }}>{t("Rent, phone, subscriptions: things you can't easily skip.")}</div>
             </div>
             <button type="button" onClick={() => setIsFixed((v) => !v)} style={{ position: "relative", height: 26, width: 46, borderRadius: 999, border: "none", cursor: "pointer", background: isFixed ? C.green : "#D9CFBE", flexShrink: 0 }}>
               <span style={{ position: "absolute", top: 3, left: 3, height: 20, width: 20, borderRadius: "50%", background: "#fff", transition: "transform .15s", transform: isFixed ? "translateX(20px)" : "translateX(0)" }} />
@@ -209,7 +211,7 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
         {/* Rating — reflect on the purchase (expenses only, optional) */}
         {isExpense && (
           <div>
-            <label style={labelCls}>How did it feel? (optional)</label>
+            <label style={labelCls}>{t("How did it feel? (optional)")}</label>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
               {RATINGS.map((r) => {
                 const active = rating === r.key;
@@ -221,7 +223,7 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
                     style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, borderRadius: R.md, padding: "10px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", border: `1px solid ${active ? r.color + "55" : C.border}`, background: active ? r.bg : "#fff", color: active ? r.color : C.sub }}
                   >
                     <span style={{ fontSize: 18 }}>{r.icon}</span>
-                    {r.label}
+                    {t(r.label)}
                   </button>
                 );
               })}
@@ -232,11 +234,11 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
         <div style={{ display: "flex", gap: 8 }}>
           {isEditing && (
             <button type="button" onClick={onCancel} style={{ flex: 1, border: `1px solid ${C.border}`, background: "#fff", color: C.sub, borderRadius: R.md, padding: "14px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-              Cancel
+              {t("Cancel")}
             </button>
           )}
           <button type="submit" disabled={submitting} style={{ flex: 1, border: "none", background: C.green, color: "#fff", borderRadius: R.md, padding: "14px", fontSize: 15, fontWeight: 700, cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit", boxShadow: submitting ? "none" : S.card, opacity: submitting ? 0.7 : 1 }}>
-            {submitting ? "Saving…" : isEditing ? "Save changes" : "Save transaction"}
+            {submitting ? t("Saving…") : isEditing ? t("Save changes") : t("Save transaction")}
           </button>
         </div>
       </form>

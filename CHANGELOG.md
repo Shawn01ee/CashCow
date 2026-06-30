@@ -2,6 +2,12 @@
 
 All notable changes to CashCow. Newest first.
 
+## v0.11.0 — Korean language (2026-06-30)
+- **English / Korean toggle** on the login & onboarding screens (saved locally).
+- Full Korean translation across the screens: onboarding, login, navigation,
+  dashboard, money feed, accounts, transactions, fixed payments and insights —
+  including category names and natural, transcreated menu labels.
+
 ## v0.10.0 — Year analysis & more quick-adds (2026-06-30)
 - **Month / Year analysis** in Insights: toggle between a single month and a
   whole year. Totals, fixed-vs-flexible, category breakdown, ratings and the
