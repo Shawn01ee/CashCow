@@ -216,6 +216,10 @@ const ko = {
   "Spending by category": "카테고리별 지출",
   "Where your money went": "어디에 썼나요",
 
+  // Guide
+  Guide: "가이드",
+  "Purchase Ratings": "소비 평가",
+
   // Language toggle
   Language: "언어",
 };

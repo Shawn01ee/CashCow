@@ -7,13 +7,14 @@ const NAV_ITEMS = [
   { key: "add", label: "Add", icon: "➕" },
   { key: "transactions", label: "Activity", icon: "📒" },
   { key: "insights", label: "Insights", icon: "📊" },
-  { key: "accounts", label: "Accounts", icon: "🏦" },
+  { key: "guide", label: "Guide", icon: "📖" },
 ];
 
 const DESKTOP_ITEMS = [
   ...NAV_ITEMS.slice(0, 4),
   { key: "fixed", label: "Fixed payments", icon: "🔁" },
-  NAV_ITEMS[4],
+  { key: "accounts", label: "Accounts", icon: "🏦" },
+  { key: "guide", label: "Guide", icon: "📖" },
 ];
 
 export default function NavBar({ page, onNavigate, user, onSignOut }) {

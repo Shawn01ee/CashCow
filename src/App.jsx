@@ -6,6 +6,7 @@ import TransactionsList from "./components/TransactionsList";
 import Insights from "./components/Insights";
 import Accounts from "./components/Accounts";
 import FixedPayments from "./components/FixedPayments";
+import Guide from "./components/Guide";
 import AuthScreen from "./auth/AuthScreen";
 import OnboardingScreen from "./auth/OnboardingScreen";
 import SetupNeeded from "./auth/SetupNeeded";
@@ -387,6 +388,8 @@ function CashCowApp({ user }) {
             onSignOut={signOut}
           />
         );
+      case "guide":
+        return <Guide onNavigate={navigate} />;
       case "home":
       default:
         return (
