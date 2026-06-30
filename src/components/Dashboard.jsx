@@ -18,6 +18,79 @@ import {
 import { colors as C, radius as R, shadow as S } from "../theme/tokens";
 import { useLang } from "../i18n";
 
+const COW_CSS = `
+@keyframes cc8walk {
+  0%   { transform: translateX(220px); }
+  100% { transform: translateX(-60px); }
+}
+@keyframes cc8legA {
+  0%,49%  { opacity:1; }
+  50%,100%{ opacity:0; }
+}
+@keyframes cc8legB {
+  0%,49%  { opacity:0; }
+  50%,100%{ opacity:1; }
+}
+`;
+
+function PixelCow() {
+  const P = 6;
+  const W = '#F5F2EC';
+  const B = '#111111';
+  const SK = '#F6C8A4';
+  const GN = '#28A866';
+  const YL = '#F5C030';
+  const GR = '#C0C0C0';
+
+  const body = [
+    // horns
+    [0,0,W],[3,0,W],
+    // head rows 1-3
+    [0,1,W],[1,1,W],[2,1,W],[3,1,W],[4,1,W],
+    [0,2,B],[1,2,W],[2,2,W],[3,2,W],[4,2,W],
+    [0,3,SK],[1,3,SK],[2,3,SK],[3,3,SK],[4,3,W],
+    // collar + coin
+    [1,4,GN],[2,4,GN],[3,4,GN],
+    [2,5,YL],[3,5,YL],
+    // body rows 6-8
+    [0,6,W],[1,6,W],[2,6,W],[3,6,W],[4,6,W],[5,6,W],[6,6,W],
+    [0,7,W],[1,7,GR],[2,7,GR],[3,7,W],[4,7,GR],[5,7,W],[6,7,W],
+    [0,8,W],[1,8,W],[2,8,W],[3,8,W],[4,8,W],[5,8,W],[6,8,W],
+    // tail
+    [7,7,GR],[8,7,GR],[8,6,GR],
+  ];
+
+  const legsA = [
+    [1,9,W],[3,9,W],[5,9,W],
+    [1,10,W],[3,10,W],[5,10,W],
+  ];
+  const legsB = [
+    [2,9,W],[4,9,W],[6,9,W],
+    [2,10,W],[4,10,W],[6,10,W],
+  ];
+
+  const h = 11 * P;
+
+  return (
+    <>
+      <style>{COW_CSS}</style>
+      <div style={{ position:"absolute", right:0, bottom:14, width:"55%", height:h, overflow:"hidden", pointerEvents:"none" }}>
+        <div style={{ animation:"cc8walk 5s linear infinite" }}>
+          <svg width={9*P} height={h} style={{ imageRendering:"pixelated", display:"block" }}>
+            {body.map(([x,y,c],i) => <rect key={i} x={x*P} y={y*P} width={P} height={P} fill={c} />)}
+            <g style={{ animation:"cc8legA 0.38s steps(1) infinite" }}>
+              {legsA.map(([x,y,c],i) => <rect key={i} x={x*P} y={y*P} width={P} height={P} fill={c} />)}
+            </g>
+            <g style={{ animation:"cc8legB 0.38s steps(1) infinite" }}>
+              {legsB.map(([x,y,c],i) => <rect key={i} x={x*P} y={y*P} width={P} height={P} fill={c} />)}
+            </g>
+          </svg>
+        </div>
+      </div>
+    </>
+  );
+}
+
 const WMO_ICON = (code) => {
   if (code === 0) return "☀️";
   if (code <= 3) return "⛅";
@@ -151,7 +224,7 @@ export default function Dashboard({
       <WeatherBar lang={lang} />
       {/* Hero: total balance */}
       <div style={{ background: C.green, borderRadius: R["2xl"], padding: "26px 28px", color: "#fff", position: "relative", overflow: "hidden" }}>
-        <img src="/mascot.png" alt="" style={{ position: "absolute", right: -8, top: -8, width: 110, height: 110, objectFit: "cover", borderRadius: R.xl, opacity: 0.55, pointerEvents: "none" }} />
+        <PixelCow />
         <div style={{ fontSize: 14, opacity: 0.92, fontWeight: 600 }}>{t("Total balance (AUD)")}</div>
         <div style={{ fontSize: 42, fontWeight: 800, letterSpacing: "-.03em", margin: "6px 0 12px" }}>
           {formatMoney(totalAud)}
