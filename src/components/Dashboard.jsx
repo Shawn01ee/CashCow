@@ -80,57 +80,40 @@ function WeatherBar({ lang }) {
     : `${MONTHS_EN[month]} ${date}, ${year}`;
 
   return (
-    <div style={{
-      display: "flex",
-      alignItems: "center",
-      gap: 18,
-      background: "linear-gradient(135deg, #fffbf0 0%, #f5f0e8 100%)",
-      border: `1px solid ${C.border}`,
-      borderRadius: R.xl,
-      padding: "16px 20px",
-    }}>
-      {/* Mascot */}
-      <img
-        src="/mascot.png"
-        alt="CashCow"
-        style={{ width: 64, height: 64, objectFit: "contain", flexShrink: 0 }}
-      />
-
-      {/* Text block */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        {/* Day of week */}
-        <div style={{ fontSize: 11, fontWeight: 700, color: C.green, textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 1 }}>
-          {dayStr}
-        </div>
-        {/* Date */}
-        <div style={{ fontSize: 20, fontWeight: 800, color: C.ink, letterSpacing: "-.03em", lineHeight: 1.1, marginBottom: 6 }}>
-          {dateStr}
-        </div>
-        {/* Time + weather row */}
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          fontSize: 13,
-          fontWeight: 500,
-          color: C.sub,
-          fontVariantNumeric: "tabular-nums",
-          flexWrap: "wrap",
-        }}>
-          <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-.02em", color: C.ink, fontVariantNumeric: "tabular-nums" }}>
-            {h12}:{mm}<span style={{ fontSize: 14, fontWeight: 600, color: C.sub }}>{ss}</span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: C.sub, marginLeft: 4 }}>{ampm}</span>
-          </span>
-          {info && (
-            <>
-              <span style={{ color: C.border }}>·</span>
-              <span style={{ fontSize: 16 }}>{info.icon}</span>
-              <span style={{ fontWeight: 600, color: C.sub }}>{info.temp}°C</span>
-              <span style={{ color: C.border }}>·</span>
-              <span style={{ color: C.muted }}>{info.city}{info.country ? `, ${info.country}` : ""}</span>
-            </>
-          )}
-        </div>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 4, padding: "4px 2px 0" }}>
+      {/* Day of week */}
+      <div style={{ fontSize: 11, fontWeight: 700, color: C.green, textTransform: "uppercase", letterSpacing: ".08em" }}>
+        {dayStr}
+      </div>
+      {/* Date */}
+      <div style={{ fontSize: 20, fontWeight: 800, color: C.ink, letterSpacing: "-.03em", lineHeight: 1.1 }}>
+        {dateStr}
+      </div>
+      {/* Time + weather row */}
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+        fontSize: 13,
+        fontWeight: 500,
+        color: C.sub,
+        fontVariantNumeric: "tabular-nums",
+        flexWrap: "wrap",
+      }}>
+        <span style={{ fontSize: 18, fontWeight: 800, letterSpacing: "-.02em", color: C.ink, fontVariantNumeric: "tabular-nums" }}>
+          {h12}:{mm}:{ss}
+          <span style={{ fontSize: 13, fontWeight: 600, color: C.sub, marginLeft: 4 }}>{ampm}</span>
+        </span>
+        {info && (
+          <>
+            <span style={{ color: C.border }}>·</span>
+            <span style={{ fontSize: 15 }}>{info.icon}</span>
+            <span style={{ fontWeight: 600, color: C.sub }}>{info.temp}°C</span>
+            <span style={{ color: C.border }}>·</span>
+            <span style={{ color: C.muted }}>{info.city}{info.country ? `, ${info.country}` : ""}</span>
+          </>
+        )}
       </div>
     </div>
   );
