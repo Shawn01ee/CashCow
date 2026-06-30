@@ -29,7 +29,12 @@ const WMO_ICON = (code) => {
   return "⛈️";
 };
 
-function WeatherBar() {
+const DAYS_EN = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const DAYS_KO = ["일요일","월요일","화요일","수요일","목요일","금요일","토요일"];
+const MONTHS_EN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+function WeatherBar({ lang }) {
+  const ko = lang === "ko";
   const [time, setTime] = useState(new Date());
   const [info, setInfo] = useState(null);
 
@@ -65,17 +70,45 @@ function WeatherBar() {
   const h12 = String(hh % 12 || 12).padStart(2, "0");
   const timeStr = `${h12}:${mm}:${ss} ${ampm}`;
 
+  const day = time.getDay();
+  const date = time.getDate();
+  const month = time.getMonth();
+  const year = time.getFullYear();
+
+  const dateStr = ko
+    ? `${year}년 ${month + 1}월 ${date}일 ${DAYS_KO[day]}`
+    : `${DAYS_EN[day]}, ${MONTHS_EN[month]} ${date}, ${year}`;
+
+  const dot = <span style={{ color: C.border, margin: "0 2px" }}>·</span>;
+
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: C.muted, flexWrap: "wrap", padding: "2px 2px 0" }}>
-      {info && <span style={{ fontWeight: 600, color: C.sub }}>{info.city}{info.country ? `, ${info.country}` : ""}</span>}
-      {info && <span style={{ color: C.border }}>·</span>}
-      <span style={{ fontVariantNumeric: "tabular-nums", fontWeight: 500 }}>{timeStr}</span>
-      {info && (
-        <>
-          <span style={{ color: C.border }}>·</span>
-          <span>{info.icon} {info.temp}°C</span>
-        </>
-      )}
+    <div style={{ display: "flex", flexDirection: "column", gap: 5, padding: "2px 2px 0" }}>
+      {/* Date line */}
+      <div style={{
+        fontSize: 18,
+        fontWeight: 700,
+        color: C.ink,
+        letterSpacing: "-.02em",
+        lineHeight: 1.2,
+      }}>
+        {dateStr}
+      </div>
+      {/* Location · Time · Weather line */}
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        flexWrap: "wrap",
+        fontSize: 13,
+        fontWeight: 500,
+        color: C.sub,
+        fontVariantNumeric: "tabular-nums",
+        letterSpacing: ".01em",
+        gap: 2,
+      }}>
+        {info && <><span style={{ fontWeight: 600 }}>{info.city}{info.country ? `, ${info.country}` : ""}</span>{dot}</>}
+        <span>{timeStr}</span>
+        {info && <>{dot}<span style={{ fontSize: 15 }}>{info.icon}</span><span> {info.temp}°C</span></>}
+      </div>
     </div>
   );
 }
@@ -110,7 +143,7 @@ export default function Dashboard({
 
   return (
     <div style={{ animation: "ccUp .35s ease", display: "flex", flexDirection: "column", gap: 16 }}>
-      <WeatherBar />
+      <WeatherBar lang={lang} />
       {/* Hero: total balance */}
       <div style={{ background: C.green, borderRadius: R["2xl"], padding: "26px 28px", color: "#fff", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", right: 22, top: 14, fontSize: 90, opacity: 0.16 }}>🐮</div>
