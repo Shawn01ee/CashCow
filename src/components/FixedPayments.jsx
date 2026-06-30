@@ -115,7 +115,7 @@ export default function FixedPayments({ fixedPayments, accounts, categories, onA
             <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("e.g. Next Rent")} style={field} />
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 8 }}>
-            <div><label style={labelCls}>{t("Amount")}</label><input type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" style={field} /></div>
+            <div><label style={labelCls}>{t("How much?")}</label><input type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" style={field} /></div>
             <div><label style={labelCls}>{t("Currency")}</label><select value={currency} onChange={(e) => setCurrency(e.target.value)} style={field}><option value="AUD">AUD</option><option value="KRW">KRW</option></select></div>
           </div>
           <div><label style={labelCls}>{t("Account")}</label><select value={accountId} onChange={(e) => setAccountId(e.target.value)} style={field}>{accounts.map((a) => (<option key={a.id} value={a.id}>{a.name} ({a.currency})</option>))}</select></div>
