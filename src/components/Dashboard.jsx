@@ -1,4 +1,5 @@
 // Dashboard.jsx — Home screen in the Buttercream theme.
+import { useState, useEffect } from "react";
 import StatCard from "./StatCard";
 import MoneyFeed from "./MoneyFeed";
 import {
@@ -16,6 +17,68 @@ import {
 } from "../utils/calculations";
 import { colors as C, radius as R, shadow as S } from "../theme/tokens";
 import { useLang } from "../i18n";
+
+const WMO_ICON = (code) => {
+  if (code === 0) return "☀️";
+  if (code <= 3) return "⛅";
+  if (code <= 48) return "🌫️";
+  if (code <= 67) return "🌧️";
+  if (code <= 77) return "🌨️";
+  if (code <= 82) return "🌦️";
+  if (code <= 86) return "🌨️";
+  return "⛈️";
+};
+
+function WeatherBar() {
+  const [time, setTime] = useState(new Date());
+  const [info, setInfo] = useState(null);
+
+  useEffect(() => {
+    const t = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+      const { latitude: lat, longitude: lon } = coords;
+      try {
+        const [geoRes, wxRes] = await Promise.all([
+          fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`),
+          fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`),
+        ]);
+        const geo = await geoRes.json();
+        const wx = await wxRes.json();
+        const city = geo.address?.city || geo.address?.town || geo.address?.suburb || geo.address?.village || "";
+        const country = geo.address?.country || "";
+        const temp = Math.round(wx.current?.temperature_2m ?? 0);
+        const icon = WMO_ICON(wx.current?.weather_code ?? 0);
+        setInfo({ city, country, temp, icon });
+      } catch {}
+    }, () => {});
+  }, []);
+
+  const hh = time.getHours();
+  const mm = String(time.getMinutes()).padStart(2, "0");
+  const ss = String(time.getSeconds()).padStart(2, "0");
+  const ampm = hh >= 12 ? "PM" : "AM";
+  const h12 = String(hh % 12 || 12).padStart(2, "0");
+  const timeStr = `${h12}:${mm}:${ss} ${ampm}`;
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: C.muted, flexWrap: "wrap", padding: "2px 2px 0" }}>
+      {info && <span style={{ fontWeight: 600, color: C.sub }}>{info.city}{info.country ? `, ${info.country}` : ""}</span>}
+      {info && <span style={{ color: C.border }}>·</span>}
+      <span style={{ fontVariantNumeric: "tabular-nums", fontWeight: 500 }}>{timeStr}</span>
+      {info && (
+        <>
+          <span style={{ color: C.border }}>·</span>
+          <span>{info.icon} {info.temp}°C</span>
+        </>
+      )}
+    </div>
+  );
+}
 
 const card = { background: C.card, border: `1px solid ${C.border}`, borderRadius: R.xl, padding: 20 };
 
@@ -47,6 +110,7 @@ export default function Dashboard({
 
   return (
     <div style={{ animation: "ccUp .35s ease", display: "flex", flexDirection: "column", gap: 16 }}>
+      <WeatherBar />
       {/* Hero: total balance */}
       <div style={{ background: C.green, borderRadius: R["2xl"], padding: "26px 28px", color: "#fff", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", right: 22, top: 14, fontSize: 90, opacity: 0.16 }}>🐮</div>
