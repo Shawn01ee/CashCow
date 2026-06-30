@@ -203,7 +203,7 @@ const ko = {
   "no account": "계좌 없음",
   Paid: "결제완료",
   weekly: "매주",
-  fortnightly: "격주 (2주)",
+  fortnightly: "격주 · 2주마다",
   "8-weekly": "8주마다",
   monthly: "매월",
   yearly: "연간",

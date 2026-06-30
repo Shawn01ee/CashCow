@@ -4,7 +4,22 @@ import { formatMoney, daysUntil } from "../utils/calculations";
 import { colors as C, radius as R } from "../theme/tokens";
 import { useLang } from "../i18n";
 
-const FREQUENCIES = ["weekly", "fortnightly", "8-weekly", "monthly", "yearly"];
+const FREQUENCIES = ["weekly", "fortnightly", "monthly", "8-weekly", "yearly"];
+
+const FREQ_LABEL_EN = {
+  weekly: "Weekly (every week)",
+  fortnightly: "Fortnightly (every 2 weeks)",
+  "8-weekly": "Every 8 weeks",
+  monthly: "Monthly",
+  yearly: "Yearly",
+};
+const FREQ_LABEL_KO = {
+  weekly: "매주",
+  fortnightly: "격주 · 2주마다",
+  "8-weekly": "8주마다",
+  monthly: "매월",
+  yearly: "연간",
+};
 
 function today() {
   return new Date().toISOString().slice(0, 10);
@@ -25,6 +40,7 @@ function monthlyEquivalent(fp) {
 export default function FixedPayments({ fixedPayments, accounts, categories, onAdd, onUpdate, onDelete, onMarkPaid, onNavigate }) {
   const { t, lang } = useLang();
   const ko = lang === "ko";
+  const FREQ_LABEL = ko ? FREQ_LABEL_KO : FREQ_LABEL_EN;
   const [tab, setTab] = useState("expense"); // "expense" | "income"
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -177,7 +193,7 @@ export default function FixedPayments({ fixedPayments, accounts, categories, onA
             <div><label style={labelCls}>{t("Category")}</label><select value={category} onChange={(e) => setCategory(e.target.value)} style={field}><option value="">{t("Select…")}</option>{expenseCategories.map((c) => (<option key={c.id} value={c.name}>{c.icon} {t(c.name)}</option>))}</select></div>
           )}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            <div><label style={labelCls}>{ko ? "주기" : "Frequency"}</label><select value={frequency} onChange={(e) => setFrequency(e.target.value)} style={field}>{FREQUENCIES.map((f) => (<option key={f} value={f}>{t(f)}</option>))}</select></div>
+            <div><label style={labelCls}>{ko ? "주기" : "Frequency"}</label><select value={frequency} onChange={(e) => setFrequency(e.target.value)} style={field}>{FREQUENCIES.map((f) => (<option key={f} value={f}>{FREQ_LABEL[f]}</option>))}</select></div>
             <div><label style={labelCls}>{kind === "income" ? (ko ? "다음 수입일" : "Next pay date") : t("Next due date")}</label><input type="date" value={nextDueDate} onChange={(e) => setNextDueDate(e.target.value)} style={field} /></div>
           </div>
           <button type="submit" style={{ border: "none", background: kind === "income" ? C.green : C.ink, color: "#fff", borderRadius: R.md, padding: "11px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
