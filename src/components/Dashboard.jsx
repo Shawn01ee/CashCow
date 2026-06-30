@@ -102,8 +102,7 @@ function WeatherBar({ lang }) {
         flexWrap: "wrap",
       }}>
         <span style={{ fontSize: 18, fontWeight: 800, letterSpacing: "-.02em", color: C.ink, fontVariantNumeric: "tabular-nums" }}>
-          {h12}:{mm}:{ss}
-          <span style={{ fontSize: 13, fontWeight: 600, color: C.sub, marginLeft: 4 }}>{ampm}</span>
+          {h12}:{mm}:{ss} <span style={{ fontSize: 18, fontWeight: 800 }}>{ampm}</span>
         </span>
         {info && (
           <>
@@ -152,7 +151,7 @@ export default function Dashboard({
       <WeatherBar lang={lang} />
       {/* Hero: total balance */}
       <div style={{ background: C.green, borderRadius: R["2xl"], padding: "26px 28px", color: "#fff", position: "relative", overflow: "hidden" }}>
-        <img src="/mascot.png" alt="" style={{ position: "absolute", right: 12, top: 10, width: 90, height: 90, objectFit: "contain", opacity: 0.22, pointerEvents: "none" }} />
+        <img src="/mascot.png" alt="" style={{ position: "absolute", right: -8, top: -8, width: 110, height: 110, objectFit: "cover", borderRadius: R.xl, opacity: 0.55, pointerEvents: "none" }} />
         <div style={{ fontSize: 14, opacity: 0.92, fontWeight: 600 }}>{t("Total balance (AUD)")}</div>
         <div style={{ fontSize: 42, fontWeight: 800, letterSpacing: "-.03em", margin: "6px 0 12px" }}>
           {formatMoney(totalAud)}
