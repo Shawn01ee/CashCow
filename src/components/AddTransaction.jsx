@@ -145,7 +145,7 @@ export default function AddTransaction({ categories, accounts, editingTx, onAdd,
 
         <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 8 }}>
           <div>
-            <label style={labelCls}>{t("Amount")}</label>
+            <label style={labelCls}>{t("How much?")}</label>
             <input type="number" step="0.01" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" style={field} />
           </div>
           <div>

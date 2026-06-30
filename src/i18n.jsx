@@ -113,6 +113,7 @@ const ko = {
   income: "수입",
   transfer: "이체",
   Amount: "금액",
+  "How much?": "얼마예요?",
   Currency: "통화",
   Category: "카테고리",
   Account: "계좌",
