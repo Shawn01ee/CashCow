@@ -59,7 +59,7 @@ export default function OnboardingScreen({ onFinish }) {
       <div className="cc-auth-form">
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 44 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
-            <div style={{ width: 42, height: 42, borderRadius: 13, background: C.butter, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>🐮</div>
+            <img src="/mascot.png" alt="CashCow" style={{ width: 42, height: 42, borderRadius: 13, objectFit: "cover" }} />
             <span style={{ fontSize: 21, fontWeight: 800, color: C.ink, letterSpacing: "-.02em" }}>CashCow</span>
           </div>
           <LangToggle />

@@ -35,7 +35,7 @@ export default function NavBar({ page, onNavigate, user, onSignOut }) {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 8px 26px" }}>
-          <div style={{ width: 38, height: 38, borderRadius: R.md, background: C.butter, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>🐮</div>
+          <img src="/mascot.png" alt="CashCow" style={{ width: 38, height: 38, borderRadius: R.md, objectFit: "cover" }} />
           <span style={{ fontSize: 19, fontWeight: 800, color: C.ink, letterSpacing: "-.02em" }}>CashCow</span>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>

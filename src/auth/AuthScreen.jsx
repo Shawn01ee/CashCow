@@ -94,7 +94,7 @@ export default function AuthScreen() {
         <div style={{ position: "absolute", bottom: -80, right: -30, width: 300, height: 300, borderRadius: "50%", background: "rgba(255,255,255,.08)" }} />
         <div style={{ position: "absolute", top: 64, right: 80, fontSize: 34, opacity: 0.5 }}>🪙</div>
         <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 40 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 14, background: C.butter, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>🐮</div>
+          <img src="/mascot.png" alt="CashCow" style={{ width: 44, height: 44, borderRadius: 14, objectFit: "cover" }} />
           <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-.02em" }}>CashCow</span>
         </div>
         <div style={{ fontSize: 38, lineHeight: 1.2, fontWeight: 800, letterSpacing: "-.03em" }}>
@@ -122,7 +122,7 @@ export default function AuthScreen() {
         {/* top row: mobile logo + language toggle */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 13, background: C.butter, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 21 }}>🐮</div>
+            <img src="/mascot.png" alt="CashCow" style={{ width: 40, height: 40, borderRadius: 13, objectFit: "cover" }} />
             <span style={{ fontSize: 20, fontWeight: 800, color: C.ink, letterSpacing: "-.02em" }}>CashCow</span>
           </div>
           <LangToggle />
