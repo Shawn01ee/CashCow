@@ -49,7 +49,7 @@ function WeatherBar({ lang }) {
       const { latitude: lat, longitude: lon } = coords;
       try {
         const [geoRes, wxRes] = await Promise.all([
-          fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`),
+          fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=en`),
           fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`),
         ]);
         const geo = await geoRes.json();
