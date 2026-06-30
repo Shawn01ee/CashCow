@@ -171,7 +171,7 @@ export default function Guide({ onNavigate }) {
           {ko ? "바로 시작해볼까요?" : "Ready to get started?"}
         </div>
         <div style={{ fontSize: 13, color: "#D9CFBE", marginTop: 4 }}>
-          {ko ? "첫 거래를 기록하고 안전 지출을 확인해보세요." : "Log your first transaction and see your safe-to-spend."}
+          {ko ? "첫 거래를 기록하고 오늘 예산을 확인해봐요." : "Log your first transaction to see your daily budget."}
         </div>
         <button
           onClick={() => onNavigate("add")}

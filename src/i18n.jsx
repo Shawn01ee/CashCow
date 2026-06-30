@@ -43,8 +43,8 @@ const ko = {
   "Track spending, bills, and accounts,\nall in one friendly place.":
     "지출·고정비·계좌를\n한 곳에서 편하게 관리해요.",
   "Know what's\nsafe to spend": "얼마나 써도\n괜찮은지 알려드려요",
-  "CashCow works out how much you can\nspend each day before your next bill.":
-    "다음 고정비 전까지 하루에\n얼마 써도 되는지 계산해드려요.",
+  "CashCow tells you how much you can\nspend per day before your next bill.":
+    "다음 고정비 전까지 하루에\n얼마 써도 되는지 알려드려요.",
   "Clear weekly\ninsights": "한눈에 보는\n소비 리포트",
   "See where your money goes, so nothing\nslips through the cracks.":
     "어디에 얼마 썼는지 정리해서\n새는 돈을 잡아드려요.",
@@ -58,12 +58,12 @@ const ko = {
   Protected: "보호",
   Main: "메인",
   "Safe to spend per day": "하루 안전 지출",
-  "no upcoming fixed payments": "예정된 고정 지출이 없어요",
+  "No upcoming bills": "예정된 고정 지출이 없어요",
   "This month in": "이번 달 수입",
   "This month out": "이번 달 지출",
   "Left this month": "이번 달 남은 돈",
-  "income minus spending": "수입에서 지출을 뺀 값",
-  "spending more than you earned": "번 것보다 많이 썼어요",
+  "Net this month": "이번 달 순수익",
+  "Over budget this month": "이번 달 초과 지출",
   "Next fixed payment ›": "다음 고정 지출 ›",
   "Add one": "추가하기",
   "tap to add rent / phone bill": "탭해서 월세·통신비 추가",
@@ -73,11 +73,11 @@ const ko = {
   "Money Feed": "머니 피드",
   "Welcome to CashCow 🐮": "캐시카우에 오신 걸 환영해요 🐮",
   "Let's set you up": "시작해볼까요",
-  "CashCow works out how much you can safely spend each day. To start, add your first account (like your bank) with its current balance.":
+  "CashCow figures out how much you can safely spend each day. To start, add your first account (like your bank) with its current balance.":
     "캐시카우가 하루에 얼마나 안전하게 쓸 수 있는지 계산해드려요. 먼저 은행 계좌와 현재 잔액을 추가해보세요.",
   "Add an account & balance": "계좌와 잔액 추가하기",
-  "Add your rent / phone bill as a fixed payment": "월세·통신비를 고정 지출로 추가하기",
-  "Log a coffee or lunch, then watch your safe to spend": "커피나 점심을 기록하고 '안전 지출'을 확인하기",
+  "Add your rent or phone bill as a fixed payment": "월세나 통신비를 고정 지출로 추가하기",
+  "Log a coffee or lunch, then see your daily budget": "커피나 점심을 기록하고 하루 예산을 확인하기",
   "Create my first account": "첫 계좌 만들기",
 
   // Accounts

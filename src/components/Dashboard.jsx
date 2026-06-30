@@ -269,8 +269,8 @@ export default function Dashboard({
                     : `${safe.target.name} 결제까지 ${safe.daysLeft}일`
                   : safe.mode === "income"
                     ? `${safe.daysLeft} days until ${safe.target.name}${safe.billsBefore > 0 ? ` · ${formatMoney(safe.billsBefore)} in bills deducted` : ""}`
-                    : `until ${safe.target.name} on ${safe.target.nextDueDate} (${safe.daysLeft} days)`
-                : t("no upcoming fixed payments")}
+                    : `${safe.target.name} · due in ${safe.daysLeft} day${safe.daysLeft === 1 ? "" : "s"}`
+                : t("No upcoming bills")}
             </div>
             {safe.mode !== "income" && (
               <div
@@ -305,7 +305,7 @@ export default function Dashboard({
           label={t("Left this month")}
           value={formatMoney(net)}
           tone={net >= 0 ? "positive" : "negative"}
-          hint={net >= 0 ? t("income minus spending") : t("spending more than you earned")}
+          hint={net >= 0 ? t("Net this month") : t("Over budget this month")}
         />
         <button onClick={() => onNavigate("fixed")} style={{ textAlign: "left", border: "none", padding: 0, background: "transparent", cursor: "pointer", fontFamily: "inherit" }}>
           <StatCard
@@ -359,12 +359,12 @@ function Onboarding({ onNavigate }) {
       </div>
       <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: R.xl, padding: 24 }}>
         <p style={{ margin: 0, fontSize: 14, color: C.sub, lineHeight: 1.6 }}>
-          {t("CashCow works out how much you can safely spend each day. To start, add your first account (like your bank) with its current balance.")}
+          {t("CashCow figures out how much you can safely spend each day. To start, add your first account (like your bank) with its current balance.")}
         </p>
         <ol style={{ margin: "16px 0 0", paddingLeft: 18, fontSize: 14, color: C.sub, lineHeight: 1.9 }}>
           <li>{t("Add an account & balance")}</li>
-          <li>{t("Add your rent / phone bill as a fixed payment")}</li>
-          <li>{t("Log a coffee or lunch, then watch your safe to spend")}</li>
+          <li>{t("Add your rent or phone bill as a fixed payment")}</li>
+          <li>{t("Log a coffee or lunch, then see your daily budget")}</li>
         </ol>
         <button
           onClick={() => onNavigate("accounts")}

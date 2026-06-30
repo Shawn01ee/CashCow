@@ -35,11 +35,11 @@ export default function MoneyFeed({ accounts, transactions, fixedPayments }) {
       tone: "good",
       text: ko
         ? safe.mode === "income"
-          ? `${safe.target.name}이 ${safe.daysLeft}일 후에 들어와요. 그때까지 하루 ${formatMoney(safe.perDay)}씩 쓸 수 있어요.`
+          ? `${safe.target.name} 수입이 ${safe.daysLeft}일 후에 들어와요. 하루 ${formatMoney(safe.perDay)}씩 쓸 수 있어요.`
           : `지금은 안전해요. ${safe.target ? `${safe.target.name} 결제는 준비됐어요.` : "예정된 큰 지출이 없어요."}`
         : safe.mode === "income"
-          ? `${safe.target.name} arrives in ${safe.daysLeft} day${safe.daysLeft === 1 ? "" : "s"}. You can spend ${formatMoney(safe.perDay)}/day until then.`
-          : `You're safe for now. ${safe.target ? `${safe.target.name} is covered.` : "No big payments coming up."}`,
+          ? `${safe.target.name} lands in ${safe.daysLeft} day${safe.daysLeft === 1 ? "" : "s"}. You can spend ${formatMoney(safe.perDay)}/day until then.`
+          : `You're good for now. ${safe.target ? `${safe.target.name} is covered.` : "No big payments coming up."}`,
     });
   }
 
@@ -68,10 +68,10 @@ export default function MoneyFeed({ accounts, transactions, fixedPayments }) {
     tone: net >= 0 ? "good" : "warn",
     text: ko
       ? net >= 0
-        ? `좋아요 — 이번 달 지금까지 ${formatMoney(net)}을 남겼어요.`
-        : `이번 달 번 것보다 ${formatMoney(Math.abs(net))} 더 썼어요.`
+        ? `잘하고 있어요! 이번 달 ${formatMoney(net)} 흑자예요.`
+        : `이번 달 수입보다 ${formatMoney(Math.abs(net))} 더 썼어요.`
       : net >= 0
-        ? `Nice — you've kept ${formatMoney(net)} this month so far.`
+        ? `Nice — you're ${formatMoney(net)} ahead this month.`
         : `You've spent ${formatMoney(Math.abs(net))} more than you earned this month.`,
   });
 
@@ -80,8 +80,8 @@ export default function MoneyFeed({ accounts, transactions, fixedPayments }) {
       emoji: "🍜",
       tone: "info",
       text: ko
-        ? `${biggestVar.category}이(가) 가장 큰 변동 지출이에요 (${formatMoney(biggestVar.total)}). 가장 줄이기 쉬운 항목이에요.`
-        : `${biggestVar.category} is your biggest flexible spend (${formatMoney(biggestVar.total)}). It's the easiest place to cut back.`,
+        ? `이번 달 변동 지출 중 ${biggestVar.category}에 가장 많이 썼어요 (${formatMoney(biggestVar.total)}).`
+        : `${biggestVar.category} is your biggest variable expense (${formatMoney(biggestVar.total)}) — easiest place to cut back.`,
     });
   }
 

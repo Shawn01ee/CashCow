@@ -15,7 +15,7 @@ const SLIDES = [
   {
     emoji: "🎯",
     title: "Know what's\nsafe to spend",
-    desc: "CashCow works out how much you can\nspend each day before your next bill.",
+    desc: "CashCow tells you how much you can\nspend per day before your next bill.",
     cta: "Next",
   },
   {

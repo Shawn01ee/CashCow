@@ -29,7 +29,7 @@ export default function AuthScreen() {
       });
       if (error) throw error;
       setStep("code");
-      setMessage({ type: "ok", text: `We sent an 8-digit code to ${email}.` });
+      setMessage({ type: "ok", text: `We've sent a code to ${email}.` });
     } catch (err) {
       setMessage({ type: "err", text: err.message });
     } finally {
