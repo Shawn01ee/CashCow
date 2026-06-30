@@ -12,6 +12,7 @@ import SetupNeeded from "./auth/SetupNeeded";
 import { useAuth } from "./auth/AuthContext";
 import { useToast } from "./components/Toast";
 import { isSupabaseConfigured } from "./lib/supabase";
+import { useLang } from "./i18n";
 import * as api from "./lib/api";
 
 // ----------------------------------------------------------------------
@@ -19,6 +20,8 @@ import * as api from "./lib/api";
 // ----------------------------------------------------------------------
 export default function App() {
   const { user, loading } = useAuth();
+  const { lang } = useLang();
+  const ko = lang === "ko";
   // Remember if the intro was already seen, so it only shows on first visit.
   const [onboarded, setOnboarded] = useState(
     () => localStorage.getItem("cashcow.onboarded") === "1"
@@ -99,7 +102,7 @@ function CashCowApp({ user }) {
         setTransactions(data.transactions);
         setFixedPayments(data.fixedPayments);
       })
-      .catch((err) => toast.error("Couldn't load your data: " + err.message))
+      .catch((err) => toast.error(ko ? "데이터를 불러오지 못했어요: " + err.message : "Couldn't load your data: " + err.message))
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
@@ -158,7 +161,7 @@ function CashCowApp({ user }) {
       await applyDeltas(txDeltas(saved));
       setPage("transactions");
     } catch (err) {
-      toast.error("Couldn't save: " + err.message);
+      toast.error(ko ? "저장하지 못했어요: " + err.message : "Couldn't save: " + err.message);
     }
   }
 
@@ -173,9 +176,9 @@ function CashCowApp({ user }) {
 
       setEditingTx(null);
       setPage("transactions");
-      toast.success("Transaction updated");
+      toast.success(ko ? "거래를 수정했어요" : "Transaction updated");
     } catch (err) {
-      toast.error("Couldn't update: " + err.message);
+      toast.error(ko ? "수정하지 못했어요: " + err.message : "Couldn't update: " + err.message);
     }
   }
 
@@ -188,7 +191,7 @@ function CashCowApp({ user }) {
     try {
       await api.updateTransaction(updated);
     } catch (err) {
-      toast.error("Couldn't save rating: " + err.message);
+      toast.error(ko ? "평가를 저장하지 못했어요: " + err.message : "Couldn't save rating: " + err.message);
     }
   }
 
@@ -198,9 +201,9 @@ function CashCowApp({ user }) {
       await api.deleteTransaction(id);
       setTransactions((prev) => prev.filter((t) => t.id !== id));
       if (tx) await applyDeltas(negateDeltas(txDeltas(tx)));
-      toast.success("Transaction deleted");
+      toast.success(ko ? "거래를 삭제했어요" : "Transaction deleted");
     } catch (err) {
-      toast.error("Couldn't delete: " + err.message);
+      toast.error(ko ? "삭제하지 못했어요: " + err.message : "Couldn't delete: " + err.message);
     }
   }
 
@@ -209,9 +212,9 @@ function CashCowApp({ user }) {
     try {
       const saved = await api.insertAccount(user.id, account);
       setAccounts((prev) => [...prev, saved]);
-      toast.success(`Added ${saved.name}`);
+      toast.success(ko ? `${saved.name} 계좌를 추가했어요` : `Added ${saved.name}`);
     } catch (err) {
-      toast.error("Couldn't add account: " + err.message);
+      toast.error(ko ? "계좌를 추가하지 못했어요: " + err.message : "Couldn't add account: " + err.message);
     }
   }
 
@@ -221,7 +224,7 @@ function CashCowApp({ user }) {
     try {
       await api.setMainAccount(user.id, accountId);
     } catch (err) {
-      toast.error("Couldn't set main account: " + err.message);
+      toast.error(ko ? "메인 계좌를 설정하지 못했어요: " + err.message : "Couldn't set main account: " + err.message);
     }
   }
 
@@ -230,9 +233,9 @@ function CashCowApp({ user }) {
     setAccounts((prev) => prev.map((a) => (a.id === account.id ? { ...a, ...account } : a)));
     try {
       await api.updateAccount(account);
-      toast.success("Account updated");
+      toast.success(ko ? "계좌를 수정했어요" : "Account updated");
     } catch (err) {
-      toast.error("Couldn't update account: " + err.message);
+      toast.error(ko ? "계좌를 수정하지 못했어요: " + err.message : "Couldn't update account: " + err.message);
     }
   }
 
@@ -241,9 +244,9 @@ function CashCowApp({ user }) {
     setAccounts((prev) => prev.filter((a) => a.id !== accountId));
     try {
       await api.deleteAccount(accountId);
-      toast.success(`Deleted ${acc?.name || "account"}`);
+      toast.success(ko ? `${acc?.name || "계좌"}를 삭제했어요` : `Deleted ${acc?.name || "account"}`);
     } catch (err) {
-      toast.error("Couldn't delete: " + err.message);
+      toast.error(ko ? "삭제하지 못했어요: " + err.message : "Couldn't delete: " + err.message);
     }
   }
 
@@ -252,9 +255,9 @@ function CashCowApp({ user }) {
     try {
       const saved = await api.insertFixedPayment(user.id, fp);
       setFixedPayments((prev) => [...prev, saved]);
-      toast.success(`Added ${saved.name}`);
+      toast.success(ko ? `${saved.name}을 추가했어요` : `Added ${saved.name}`);
     } catch (err) {
-      toast.error("Couldn't add: " + err.message);
+      toast.error(ko ? "추가하지 못했어요: " + err.message : "Couldn't add: " + err.message);
     }
   }
 
@@ -262,9 +265,9 @@ function CashCowApp({ user }) {
     try {
       const saved = await api.updateFixedPayment(fp);
       setFixedPayments((prev) => prev.map((f) => (f.id === saved.id ? saved : f)));
-      toast.success("Fixed payment updated");
+      toast.success(ko ? "고정 지출을 수정했어요" : "Fixed payment updated");
     } catch (err) {
-      toast.error("Couldn't update: " + err.message);
+      toast.error(ko ? "수정하지 못했어요: " + err.message : "Couldn't update: " + err.message);
     }
   }
 
@@ -272,9 +275,9 @@ function CashCowApp({ user }) {
     try {
       await api.deleteFixedPayment(id);
       setFixedPayments((prev) => prev.filter((f) => f.id !== id));
-      toast.success("Fixed payment deleted");
+      toast.success(ko ? "고정 지출을 삭제했어요" : "Fixed payment deleted");
     } catch (err) {
-      toast.error("Couldn't delete: " + err.message);
+      toast.error(ko ? "삭제하지 못했어요: " + err.message : "Couldn't delete: " + err.message);
     }
   }
 
@@ -304,9 +307,9 @@ function CashCowApp({ user }) {
         const saved = await api.updateFixedPayment(next);
         setFixedPayments((prev) => prev.map((f) => (f.id === saved.id ? saved : f)));
       }
-      toast.success(`${fp.name} paid`);
+      toast.success(ko ? `${fp.name} 결제 완료` : `${fp.name} paid`);
     } catch (err) {
-      toast.error("Couldn't mark paid: " + err.message);
+      toast.error(ko ? "결제 처리를 하지 못했어요: " + err.message : "Couldn't mark paid: " + err.message);
     }
   }
 

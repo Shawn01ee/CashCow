@@ -8,7 +8,8 @@ import { colors as C, radius as R } from "../theme/tokens";
 
 export default function Accounts({ accounts, onAddAccount, onSetMain, onEditAccount, onDeleteAccount, user, onSignOut }) {
   const toast = useToast();
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const ko = lang === "ko";
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
   const [currency, setCurrency] = useState("AUD");
@@ -19,7 +20,7 @@ export default function Accounts({ accounts, onAddAccount, onSetMain, onEditAcco
   function handleSubmit(e) {
     e.preventDefault();
     if (!name.trim()) {
-      toast.error("Please give the account a name.");
+      toast.error(ko ? "계좌 이름을 입력해주세요." : "Please give the account a name.");
       return;
     }
     onAddAccount({ id: `acc-${Date.now()}`, name: name.trim(), currency, balance: parseFloat(balance) || 0, isMain: false });

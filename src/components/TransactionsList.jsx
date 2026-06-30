@@ -108,12 +108,17 @@ export default function TransactionsList({ transactions, accounts, categories, m
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {isTransfer ? (tx.memo || t("Transfer")) : (tx.memo || t(tx.category))}
+                          {isTransfer ? t("Transfer") : t(tx.category)}
                         </div>
+                        {tx.memo && (
+                          <div style={{ fontSize: 13, color: C.sub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {tx.memo}
+                          </div>
+                        )}
                         <div style={{ fontSize: 12, color: C.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {isTransfer
                             ? `${accountName(tx.accountId)} → ${accountName(tx.toAccountId)}`
-                            : `${t(tx.category)} · ${accountName(tx.accountId)} · ${tx.isFixed ? t("Fixed") : t("Variable")}`}
+                            : `${accountName(tx.accountId)} · ${tx.isFixed ? t("Fixed") : t("Variable")}`}
                         </div>
                       </div>
                       <div style={{ fontSize: 15, fontWeight: 800, whiteSpace: "nowrap", color: isTransfer ? "#4666CC" : tx.type === "income" ? C.greenDark : C.ink }}>
