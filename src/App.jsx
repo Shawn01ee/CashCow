@@ -282,15 +282,15 @@ function CashCowApp({ user }) {
     }
   }
 
-  // "Paid": create a real expense, subtract from the account, and either
-  // advance the due date or remove a one-off payment.
+  // "Paid" / "Received": log a real transaction and advance the next date.
   async function markFixedPaid(fp) {
+    const isIncome = fp.kind === "income";
     try {
       const tx = {
-        type: "expense",
+        type: isIncome ? "income" : "expense",
         amount: fp.amount,
         currency: fp.currency,
-        category: fp.category || "Other",
+        category: fp.category || (isIncome ? "Other Income" : "Other"),
         accountId: fp.accountId,
         memo: fp.name,
         date: todayStr(),
@@ -308,9 +308,11 @@ function CashCowApp({ user }) {
         const saved = await api.updateFixedPayment(next);
         setFixedPayments((prev) => prev.map((f) => (f.id === saved.id ? saved : f)));
       }
-      toast.success(ko ? `${fp.name} 결제 완료` : `${fp.name} paid`);
+      toast.success(ko
+        ? `${fp.name} ${isIncome ? "수입 기록 완료" : "결제 완료"}`
+        : `${fp.name} ${isIncome ? "received" : "paid"}`);
     } catch (err) {
-      toast.error(ko ? "결제 처리를 하지 못했어요: " + err.message : "Couldn't mark paid: " + err.message);
+      toast.error(ko ? "처리하지 못했어요: " + err.message : "Couldn't process: " + err.message);
     }
   }
 

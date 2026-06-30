@@ -49,6 +49,7 @@ const toAppFixed = (r) => ({
   category: r.category,
   frequency: r.frequency,
   nextDueDate: r.next_due_date,
+  kind: r.kind || "expense",
 });
 
 // ---------- Load everything for the logged-in user ----------
@@ -203,6 +204,7 @@ export async function insertFixedPayment(userId, fp) {
       category: fp.category,
       frequency: fp.frequency,
       next_due_date: fp.nextDueDate,
+      kind: fp.kind || "expense",
     })
     .select()
     .single();
@@ -221,6 +223,7 @@ export async function updateFixedPayment(fp) {
       category: fp.category,
       frequency: fp.frequency,
       next_due_date: fp.nextDueDate,
+      kind: fp.kind || "expense",
     })
     .eq("id", fp.id)
     .select()

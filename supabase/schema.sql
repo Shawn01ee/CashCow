@@ -73,8 +73,12 @@ create table if not exists fixed_payments (
   category text,
   frequency text not null check (frequency in ('weekly','fortnightly','monthly','once')),
   next_due_date date not null,
+  kind text not null default 'expense' check (kind in ('expense','income')),
   created_at timestamptz default now()
 );
+
+-- Backfill: existing rows all become expenses.
+alter table fixed_payments add column if not exists kind text not null default 'expense' check (kind in ('expense','income'));
 
 -- Helpful indexes for "all rows for this user" lookups.
 create index if not exists idx_accounts_user on accounts(user_id);

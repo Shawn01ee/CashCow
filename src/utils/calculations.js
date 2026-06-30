@@ -174,10 +174,18 @@ export function expenseTrend(transactions, period = "month", now = new Date()) {
   return buckets;
 }
 
-// Find the next upcoming fixed payment (soonest future due date).
+// Find the next upcoming fixed payment/expense (soonest future due date).
 export function nextFixedPayment(fixedPayments, now = new Date()) {
   const upcoming = fixedPayments
-    .filter((fp) => new Date(fp.nextDueDate) >= startOfDay(now))
+    .filter((fp) => (fp.kind || "expense") === "expense" && new Date(fp.nextDueDate) >= startOfDay(now))
+    .sort((a, b) => new Date(a.nextDueDate) - new Date(b.nextDueDate));
+  return upcoming[0] || null;
+}
+
+// Find the next upcoming fixed income (soonest future date).
+export function nextFixedIncome(fixedPayments, now = new Date()) {
+  const upcoming = fixedPayments
+    .filter((fp) => fp.kind === "income" && new Date(fp.nextDueDate) >= startOfDay(now))
     .sort((a, b) => new Date(a.nextDueDate) - new Date(b.nextDueDate));
   return upcoming[0] || null;
 }
@@ -205,24 +213,46 @@ function startOfDay(d) {
 // ----------------------------------------------------------------------
 export function safeToSpend(accounts, fixedPayments, now = new Date()) {
   const available = availableAudBalance(accounts);
-  const next = nextFixedPayment(fixedPayments, now);
+  const nextBill = nextFixedPayment(fixedPayments, now);
+  const nextIncome = nextFixedIncome(fixedPayments, now);
 
-  // No upcoming fixed payment? Then all available money is free to spend.
-  if (!next) {
-    return { perDay: available, daysLeft: 0, target: null, covered: true, amountNeeded: 0 };
+  // If income arrives before the next bill (or there's no bill), count it.
+  const incomeBeforeBill =
+    nextIncome &&
+    nextIncome.currency === "AUD" &&
+    (!nextBill || new Date(nextIncome.nextDueDate) <= new Date(nextBill.nextDueDate));
+
+  const incomeSoon = incomeBeforeBill ? nextIncome.amount : 0;
+
+  // No upcoming bill? Show daily burn rate until next income, or just pot / 30.
+  if (!nextBill) {
+    if (nextIncome && nextIncome.currency === "AUD") {
+      const daysLeft = Math.max(1, daysUntil(nextIncome.nextDueDate, now));
+      return {
+        perDay: available / daysLeft,
+        daysLeft,
+        target: null,
+        nextIncome,
+        covered: true,
+        amountNeeded: 0,
+        mode: "income",
+      };
+    }
+    return { perDay: available / 30, daysLeft: 30, target: null, nextIncome: null, covered: true, amountNeeded: 0, mode: "free" };
   }
 
-  const daysLeft = Math.max(1, daysUntil(next.nextDueDate, now)); // avoid divide-by-zero
-  // If the bill is paid from a protected account, it's already set aside.
-  const fromProtected = accounts.find((a) => a.id === next.accountId)?.isProtected;
-  const leftover = fromProtected ? available : available - next.amount;
+  const daysLeft = Math.max(1, daysUntil(nextBill.nextDueDate, now));
+  const fromProtected = accounts.find((a) => a.id === nextBill.accountId)?.isProtected;
+  const leftover = fromProtected ? available + incomeSoon : available + incomeSoon - nextBill.amount;
   const perDay = leftover / daysLeft;
 
   return {
     perDay,
     daysLeft,
-    target: next,
+    target: nextBill,
+    nextIncome: incomeBeforeBill ? nextIncome : null,
     covered: leftover >= 0,
     amountNeeded: leftover < 0 ? Math.abs(leftover) : 0,
+    mode: "bill",
   };
 }
