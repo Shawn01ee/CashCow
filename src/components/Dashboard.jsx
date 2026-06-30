@@ -90,13 +90,21 @@ export default function Dashboard({
               {safe.target
                 ? lang === "ko"
                   ? safe.mode === "income"
-                    ? `다음 수입(${safe.target.name})까지 ${safe.daysLeft}일${safe.billsBefore > 0 ? ` · 지출 ${formatMoney(safe.billsBefore)} 제외` : ""}`
+                    ? `다음 수입(${safe.target.name})까지 ${safe.daysLeft}일${safe.billsBefore > 0 ? ` · 고정지출 ${formatMoney(safe.billsBefore)} 제외` : ""}`
                     : `${safe.target.name} 결제까지 ${safe.daysLeft}일`
                   : safe.mode === "income"
                     ? `${safe.daysLeft} days until ${safe.target.name}${safe.billsBefore > 0 ? ` · ${formatMoney(safe.billsBefore)} in bills deducted` : ""}`
                     : `until ${safe.target.name} on ${safe.target.nextDueDate} (${safe.daysLeft} days)`
                 : t("no upcoming fixed payments")}
             </div>
+            {safe.mode !== "income" && (
+              <div
+                onClick={() => onNavigate("fixed")}
+                style={{ fontSize: 12, color: C.green, marginTop: 6, cursor: "pointer", fontWeight: 600 }}
+              >
+                {lang === "ko" ? "💡 수입 등록하면 더 정확해져요 →" : "💡 Add your income for smarter budgeting →"}
+              </div>
+            )}
           </>
         ) : (
           <>
