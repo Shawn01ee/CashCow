@@ -89,8 +89,12 @@ export default function Dashboard({
             <div style={{ fontSize: 14, color: C.sub }}>
               {safe.target
                 ? lang === "ko"
-                  ? `${safe.target.name} (${safe.target.nextDueDate})까지 ${safe.daysLeft}일`
-                  : `until ${safe.target.name} on ${safe.target.nextDueDate} (${safe.daysLeft} days)`
+                  ? safe.mode === "income"
+                    ? `다음 수입(${safe.target.name})까지 ${safe.daysLeft}일${safe.billsBefore > 0 ? ` · 지출 ${formatMoney(safe.billsBefore)} 제외` : ""}`
+                    : `${safe.target.name} 결제까지 ${safe.daysLeft}일`
+                  : safe.mode === "income"
+                    ? `${safe.daysLeft} days until ${safe.target.name}${safe.billsBefore > 0 ? ` · ${formatMoney(safe.billsBefore)} in bills deducted` : ""}`
+                    : `until ${safe.target.name} on ${safe.target.nextDueDate} (${safe.daysLeft} days)`
                 : t("no upcoming fixed payments")}
             </div>
           </>

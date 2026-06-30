@@ -205,52 +205,65 @@ function startOfDay(d) {
 // ----------------------------------------------------------------------
 // Safe to Spend — the heart of CashCow.
 //
-// We start from your AVAILABLE money (not protected accounts — that's money
-// you've already set aside). If the next fixed payment comes from a protected
-// account, it's already covered, so we don't subtract it again.
+// If the user has a fixed income set up:
+//   1. Find the next income date (the "horizon").
+//   2. Sum all AUD bills due between now and that date (from unprotected accounts).
+//   3. safe per day = (available - bills before income) / days until income
 //
-//   Safe per day = (available - uncovered fixed payment) / days until it's due
+// If no fixed income is set up, fall back to the next bill as the horizon.
+// If neither exists, divide available by 30.
 // ----------------------------------------------------------------------
 export function safeToSpend(accounts, fixedPayments, now = new Date()) {
   const available = availableAudBalance(accounts);
-  const nextBill = nextFixedPayment(fixedPayments, now);
   const nextIncome = nextFixedIncome(fixedPayments, now);
 
-  // If income arrives before the next bill (or there's no bill), count it.
-  const incomeBeforeBill =
-    nextIncome &&
-    nextIncome.currency === "AUD" &&
-    (!nextBill || new Date(nextIncome.nextDueDate) <= new Date(nextBill.nextDueDate));
+  // --- Income-based mode (primary) ---
+  if (nextIncome && nextIncome.currency === "AUD") {
+    const daysLeft = Math.max(1, daysUntil(nextIncome.nextDueDate, now));
 
-  const incomeSoon = incomeBeforeBill ? nextIncome.amount : 0;
+    // Bills due on or before the income date that come from unprotected accounts.
+    const billsBefore = fixedPayments
+      .filter((fp) =>
+        (fp.kind || "expense") === "expense" &&
+        fp.currency === "AUD" &&
+        new Date(fp.nextDueDate) >= startOfDay(now) &&
+        new Date(fp.nextDueDate) <= startOfDay(new Date(nextIncome.nextDueDate))
+      )
+      .reduce((sum, fp) => {
+        const fromProtected = accounts.find((a) => a.id === fp.accountId)?.isProtected;
+        return fromProtected ? sum : sum + fp.amount;
+      }, 0);
 
-  // No upcoming bill? Show daily burn rate until next income, or just pot / 30.
+    const spendable = available - billsBefore;
+    const perDay = spendable / daysLeft;
+
+    return {
+      perDay,
+      daysLeft,
+      target: nextIncome,   // horizon = next payday
+      nextIncome,
+      billsBefore,
+      covered: spendable >= 0,
+      amountNeeded: spendable < 0 ? Math.abs(spendable) : 0,
+      mode: "income",
+    };
+  }
+
+  // --- Fallback: next bill as horizon ---
+  const nextBill = nextFixedPayment(fixedPayments, now);
   if (!nextBill) {
-    if (nextIncome && nextIncome.currency === "AUD") {
-      const daysLeft = Math.max(1, daysUntil(nextIncome.nextDueDate, now));
-      return {
-        perDay: available / daysLeft,
-        daysLeft,
-        target: null,
-        nextIncome,
-        covered: true,
-        amountNeeded: 0,
-        mode: "income",
-      };
-    }
     return { perDay: available / 30, daysLeft: 30, target: null, nextIncome: null, covered: true, amountNeeded: 0, mode: "free" };
   }
 
   const daysLeft = Math.max(1, daysUntil(nextBill.nextDueDate, now));
   const fromProtected = accounts.find((a) => a.id === nextBill.accountId)?.isProtected;
-  const leftover = fromProtected ? available + incomeSoon : available + incomeSoon - nextBill.amount;
-  const perDay = leftover / daysLeft;
+  const leftover = fromProtected ? available : available - nextBill.amount;
 
   return {
-    perDay,
+    perDay: leftover / daysLeft,
     daysLeft,
     target: nextBill,
-    nextIncome: incomeBeforeBill ? nextIncome : null,
+    nextIncome: null,
     covered: leftover >= 0,
     amountNeeded: leftover < 0 ? Math.abs(leftover) : 0,
     mode: "bill",

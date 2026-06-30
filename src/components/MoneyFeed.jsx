@@ -22,26 +22,44 @@ export default function MoneyFeed({ accounts, transactions, fixedPayments }) {
       emoji: "⚠️",
       tone: "warn",
       text: ko
-        ? `주의: 잔액이 ${safe.target.name} 결제에 부족할 수 있어요. 약 ${formatMoney(safe.amountNeeded)} 모자라요.`
-        : `Heads up: your balance may not cover ${safe.target.name}. You're about ${formatMoney(safe.amountNeeded)} short.`,
+        ? safe.mode === "income"
+          ? `주의: 다음 수입(${safe.target?.name})이 오기 전에 잔액이 부족할 수 있어요. 약 ${formatMoney(safe.amountNeeded)} 모자라요.`
+          : `주의: 잔액이 ${safe.target?.name} 결제에 부족할 수 있어요. 약 ${formatMoney(safe.amountNeeded)} 모자라요.`
+        : safe.mode === "income"
+          ? `Heads up: you may run short before ${safe.target?.name} arrives. About ${formatMoney(safe.amountNeeded)} short.`
+          : `Heads up: your balance may not cover ${safe.target?.name}. You're about ${formatMoney(safe.amountNeeded)} short.`,
     });
   } else if (safe.perDay > 0) {
     messages.push({
       emoji: "✅",
       tone: "good",
       text: ko
-        ? `지금은 안전해요. ${safe.target ? `${safe.target.name} 결제는 준비됐어요.` : "예정된 큰 지출이 없어요."}`
-        : `You're safe for now. ${safe.target ? `${safe.target.name} is covered.` : "No big payments coming up."}`,
+        ? safe.mode === "income"
+          ? `${safe.target.name}이 ${safe.daysLeft}일 후에 들어와요. 그때까지 하루 ${formatMoney(safe.perDay)}씩 쓸 수 있어요.`
+          : `지금은 안전해요. ${safe.target ? `${safe.target.name} 결제는 준비됐어요.` : "예정된 큰 지출이 없어요."}`
+        : safe.mode === "income"
+          ? `${safe.target.name} arrives in ${safe.daysLeft} day${safe.daysLeft === 1 ? "" : "s"}. You can spend ${formatMoney(safe.perDay)}/day until then.`
+          : `You're safe for now. ${safe.target ? `${safe.target.name} is covered.` : "No big payments coming up."}`,
     });
   }
 
-  if (safe.covered && safe.target) {
+  if (safe.covered && safe.mode !== "income" && safe.target) {
     messages.push({
       emoji: "💸",
       tone: "info",
       text: ko
         ? `앞으로 ${safe.daysLeft}일 동안 하루에 약 ${formatMoney(safe.perDay)}까지 안전하게 쓸 수 있어요.`
         : `You can safely spend about ${formatMoney(safe.perDay)} per day for the next ${safe.daysLeft} day${safe.daysLeft === 1 ? "" : "s"}.`,
+    });
+  }
+
+  if (safe.covered && safe.mode === "income" && safe.billsBefore > 0) {
+    messages.push({
+      emoji: "🧾",
+      tone: "info",
+      text: ko
+        ? `수입 전에 ${formatMoney(safe.billsBefore)}의 고정 지출이 예정돼 있어요. 이미 계산에 반영됐어요.`
+        : `${formatMoney(safe.billsBefore)} in bills are due before your next income — already factored in.`,
     });
   }
 
