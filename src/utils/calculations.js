@@ -202,13 +202,33 @@ function startOfDay(d) {
   return copy;
 }
 
+// Count how many times a recurring fixed payment fires between now and a horizon date.
+// Walks forward from fp.nextDueDate step-by-step so monthly/yearly are accurate.
+function occurrencesInWindow(fp, from, to) {
+  const fromDay = startOfDay(from);
+  const toDay = startOfDay(new Date(to));
+  let count = 0;
+  let cur = startOfDay(new Date(fp.nextDueDate));
+
+  while (cur <= toDay) {
+    if (cur >= fromDay) count++;
+    if (fp.frequency === "weekly")       cur.setDate(cur.getDate() + 7);
+    else if (fp.frequency === "fortnightly") cur.setDate(cur.getDate() + 14);
+    else if (fp.frequency === "8-weekly")  cur.setDate(cur.getDate() + 56);
+    else if (fp.frequency === "monthly")  cur.setMonth(cur.getMonth() + 1);
+    else if (fp.frequency === "yearly")   cur.setFullYear(cur.getFullYear() + 1);
+    else break; // "once" — only fires once, handled by count above
+  }
+  return count;
+}
+
 // ----------------------------------------------------------------------
 // Safe to Spend — the heart of CashCow.
 //
 // If the user has a fixed income set up:
 //   1. Find the next income date (the "horizon").
-//   2. Sum all AUD bills due between now and that date (from unprotected accounts).
-//   3. safe per day = (available - bills before income) / days until income
+//   2. Sum ALL occurrences of recurring AUD bills between now and that date.
+//   3. safe per day = (available - total bills before income) / days until income
 //
 // If no fixed income is set up, fall back to the next bill as the horizon.
 // If neither exists, divide available by 30.
@@ -221,17 +241,14 @@ export function safeToSpend(accounts, fixedPayments, now = new Date()) {
   if (nextIncome && nextIncome.currency === "AUD") {
     const daysLeft = Math.max(1, daysUntil(nextIncome.nextDueDate, now));
 
-    // Bills due on or before the income date that come from unprotected accounts.
+    // All occurrences of every AUD expense bill up to (and including) the income date.
     const billsBefore = fixedPayments
-      .filter((fp) =>
-        (fp.kind || "expense") === "expense" &&
-        fp.currency === "AUD" &&
-        new Date(fp.nextDueDate) >= startOfDay(now) &&
-        new Date(fp.nextDueDate) <= startOfDay(new Date(nextIncome.nextDueDate))
-      )
+      .filter((fp) => (fp.kind || "expense") === "expense" && fp.currency === "AUD")
       .reduce((sum, fp) => {
         const fromProtected = accounts.find((a) => a.id === fp.accountId)?.isProtected;
-        return fromProtected ? sum : sum + fp.amount;
+        if (fromProtected) return sum;
+        const count = occurrencesInWindow(fp, now, nextIncome.nextDueDate);
+        return sum + fp.amount * count;
       }, 0);
 
     const spendable = available - billsBefore;
